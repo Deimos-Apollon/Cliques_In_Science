@@ -1,11 +1,10 @@
 import time
-from collections import Counter
-from dir.SqlReaderWriter import SqlReaderWriter
-from progress.bar import IncrementalBar
-from dir.JsonReaderWriter import JsonReaderWriter
 
-import json
-import gzip
+from progress.bar import IncrementalBar
+
+from SqlReaderWriter import SqlReaderWriter
+
+sqlrw = SqlReaderWriter()
 
 
 def data_read_first_phase(samples):
@@ -74,47 +73,3 @@ def data_read_second_phase(samples):
                         for src_author in src_authors:
                             for work_author in work_authors:
                                 sqlrw.add_new_author_citates_author(work_author[0], src_author[0])
-
-
-if __name__ == "__main__":
-    # start = time.time()
-    sqlrw = SqlReaderWriter()
-
-    file_names = [fr'C:\Users\user\Downloads\ps\crossref\{i}.json.gz' for i in range(32000, 33000)]
-    subject_distribution = Counter()
-    glob_start = time.time()
-    subjects = set()
-    with open(fr'C:\Users\user\PycharmProjects\alt_exam_1\dataset\SUPER.json', 'w') as new_ar:
-        new_data = {'items': []}
-        for file_number, path in enumerate(file_names):
-            print(f"\nProcessing file #{file_number}: \n")
-            with gzip.open(path, 'r') as archive:
-
-                archive_data = archive.read()
-                data = json.loads(archive_data.decode('utf-8'))['items']
-
-                samples = data
-                bar1 = IncrementalBar("Reading first phase", max=len(samples))
-                start = time.time()
-                # data reading first phase: works, authors
-                for work in samples:
-                    bar1.next()
-                    # read work's DOI
-                    DOI = work.get('DOI')
-                    SUBJECT = work.get('subject')
-                    if SUBJECT and DOI:
-                        work_json_repr = {"Subject": SUBJECT}
-                        new_data['items'].append(work_json_repr)
-                        for elem in SUBJECT:
-                            subject_distribution[elem] += 1
-                bar1.finish()
-                print()
-                first_phase_time = time.time() - start
-                print(first_phase_time)
-
-                data = json.loads(archive_data.decode('utf-8'))
-        json.dump(new_data, new_ar)
-
-    print(time.time() - glob_start)
-    print(len(subjects))
-    print(subject_distribution)
