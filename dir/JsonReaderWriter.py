@@ -10,8 +10,8 @@ class JsonReaderWriter:
         self.__max_entry__ = 5000
         self.__current_json_file_number = min_vacant_json_file_number
         self.file_range = range(left_border, right_border)
-        self.file_names = (fr'C:\Users\user\Downloads\ps\crossref\{i}.json.gz' for i in self.file_range)
-        self.file_to_write_prefix = r'C:\Users\user\PycharmProjects\alt_exam_1\compressed_dataset\compressed_'
+        self.file_names = file_names
+        self.file_to_write_prefix = file_to_write_prefix
 
     def proceed(self):
         compressed_data = {'items': []}
@@ -60,6 +60,11 @@ class JsonReaderWriter:
                 or elem.get("is-referenced-by-count") is None \
                 or elem.get("created") is None:
             return False
+        for author in elem["author"]:
+            if not author.get("given") or not author.get("family") or len(author["family"]) > 40 \
+                    or '"' in author["given"] or ',' in author["given"] \
+                    or '"' in author["family"] or ',' in author["family"]:
+                return False
         return True
 
     def __work_json_repr__(self, elem):

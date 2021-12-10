@@ -32,12 +32,9 @@ class SqlReaderWriter:
             SELECT given_name FROM author WHERE given_name = ("{given_name}") AND family_name = ("{family_name}")
              AND affilation = ("{affilation}") AND ORCID = ("{ORCID}")  Limit 1
         '''
-        try:
-            with self.connection.cursor() as cursor:
-                cursor.execute(check_author_query)
-                do_exists = cursor.fetchall()
-        except ProgrammingError as e:
-            print(check_author_query)
+        with self.connection.cursor() as cursor:
+            cursor.execute(check_author_query)
+            do_exists = cursor.fetchall()
         if not do_exists:
             self.__insert_new_author__(given_name, family_name, affilation, ORCID)
 
@@ -61,16 +58,7 @@ class SqlReaderWriter:
             do_exists = cursor.fetchall()
 
         if not do_exists:
-            self.__insert_new_work__(doi, date, references_count, is_referenced_count)
-
-    def __insert_new_author_citates_author__(self, main_ORCID, source_ORCID):
-        insert_work_query = fr'''
-                INSERT INTO Author_citates_Author
-                VALUES ('{main_ORCID}', '{source_ORCID}')
-            '''
-        with self.connection.cursor() as cursor:
-            cursor.execute(insert_work_query)
-        self.connection.commit()
+            self.__insert_new_work__(doi, year, references_count, is_referenced_count)
 
     def __insert_new_author_has_work__(self, ID, DOI):
         insert_author_has_work_query = fr'''
@@ -84,57 +72,39 @@ class SqlReaderWriter:
     def add_new_author_has_work(self, ID, DOI):
         self.__insert_new_author_has_work__(ID, DOI)
 
-    def get_author_id(self, given_name, family_name, affilation, ORCID):    # TODO DELET
-        get_query = fr'''
-            SELECT ID FROM author WHERE given_name = ("{given_name}") AND family_name = ("{family_name}")
-             AND affilation = ("{affilation}") AND ORCID = ("{ORCID}") Limit 1
-        '''
+    def __insert_new_author_citates_author__(self, main_ID, source_ID):
+        insert_work_query = fr'''
+                 INSERT INTO Author_citates_Author (Author_ID, Src_ID, Total_refs)
+                 VALUES ({main_ID}, {source_ID}, 1)
+             '''
         with self.connection.cursor() as cursor:
-            cursor.execute(get_query)
-            ans = cursor.fetchall()
-        return ans
+            cursor.execute(insert_work_query)
+        self.connection.commit()
+    
 
-    def count_author_works(self, ID):       # TODO DELET
-        get_query = fr'''
-            SELECT COUNT(*) FROM author_has_work WHERE author_id=({ID})
-        '''
+    def __increment_author_citates_author__(self, main_ID, source_ID):
+        increment_work_query = fr'''
+                 UPDATE Author_citates_Author
+                 SET Total_refs = Total_refs+1 WHERE Author_ID = '{main_ID}'
+                 and Src_ID = '{source_ID}'
+             '''
         with self.connection.cursor() as cursor:
-            cursor.execute(get_query)
-            ans = cursor.fetchall()
-        return ans[0][0]
+            cursor.execute(increment_work_query)
+        self.connection.commit()
 
-    def add_new_author_citates_author(self, main_ORCID, source_ORCID):
+    def add_new_author_citates_author(self, main_ID, source_ID):
         check_author_citates_author_query = fr'''
-                   SELECT * FROM Author_citates_Author WHERE Author_ORCID = '{main_ORCID}' 
-                   and Source_ORCID = '{source_ORCID}' 
+                   SELECT * FROM Author_citates_Author WHERE Author_ID = '{main_ID}' 
+                   and Src_ID = '{source_ID}' 
                '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_author_citates_author_query)
             do_exists = cursor.fetchall()
 
         if not do_exists:
-            self.__insert_new_author_citates_author__(main_ORCID, source_ORCID)
-        # else:
-        #     print(f"Add_new_author_citates_author {do_exists}")  # TODO DELETE
-
-    def __insert_work_ref__(self, doi, src_doi):
-        insert_work_ref_query = fr'''
-                        INSERT INTO citation
-                        VALUES ('{doi}', '{src_doi}')
-                    '''
-        with self.connection.cursor() as cursor:
-            cursor.execute(insert_work_ref_query)
-        self.connection.commit()
-
-    def add_new_work_ref(self, doi, src_doi):
-        check_work_ref_query = fr'''
-               SELECT * FROM citation WHERE Work_DOI = '{doi}' and Source_DOI = '{src_doi}'
-           '''
-        with self.connection.cursor() as cursor:
-            cursor.execute(check_work_ref_query)
-            do_exists = cursor.fetchall()
-        if not do_exists:
-            self.__insert_work_ref__(doi, src_doi)
+            self.__insert_new_author_citates_author__(main_ID, source_ID)
+        else:
+            self.__increment_author_citates_author__(main_ID, source_ID)
 
     def check_if_DOI_exists(self, doi):
         check_query = fr'''
@@ -182,3 +152,58 @@ class SqlReaderWriter:
             cursor.execute(get_query)
             authors_citates_authors = cursor.fetchall()
         return authors_citates_authors
+
+    def get_number_author_citates_author(self):
+        get_query = fr'''
+                         SELECT COUNT(*) FROM Author_citates_Author
+                '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            num_entries = cursor.fetchall()
+        return num_entries[0][0]
+
+    def get_citation_id_from_graph(self, entry_ID):
+        get_query = fr'''
+                         SELECT Author_Citates_Author_ID from Graph where ID = {entry_ID}
+                '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            entry = cursor.fetchall()
+        return entry[0][0]
+
+    def get_citation_via_id(self, entry_ID):
+        get_query = fr'''
+                         SELECT Author_ID, Src_ID FROM Author_citates_Author WHERE ID = {entry_ID}
+                '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            entry = cursor.fetchall()
+        return entry[0]
+
+    def get_citation_via_authors(self, Author_ID, Src_ID):
+        get_query = fr'''
+                            SELECT ID  FROM Author_citates_Author WHERE Author_ID = {Author_ID} and Src_ID = {Src_ID}
+                   '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            entry = cursor.fetchall()
+        return entry[0][0] if entry else None
+
+    def __insert_edge_to_graph__(self, entry_ID):
+        insert_edge_query = fr'''
+                                   INSERT INTO Graph (Author_Citates_Author_ID)
+                                   VALUES ({entry_ID})
+                               '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(insert_edge_query)
+        self.connection.commit()
+
+    def add_edge_to_graph(self, entry_ID):
+        check_edge_query = fr'''
+                                Select ID from Graph where Author_Citates_Author_ID = {entry_ID}
+                            '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(check_edge_query)
+            do_exists = cursor.fetchall()
+        if not do_exists:
+            self.__insert_edge_to_graph__(entry_ID)
