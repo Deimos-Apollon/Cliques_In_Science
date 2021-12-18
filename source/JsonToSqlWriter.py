@@ -8,14 +8,14 @@ from source.Sql_classes.SqlReader import SqlReader
 
 
 class JsonToSqlWriter:
-    def data_read_first_phase_from_files(self, filenames):
+    def data_read_first_phase_from_files(self, filenames, file_number_left):
 
         for filename in filenames:
             with open(filename) as file:
                 samples = json.load(file)['items']
-                self.__data_read_first_phase(samples)
+                self.__data_read_first_phase(samples, file_number_left)
 
-    def __data_read_first_phase(self, samples):
+    def __data_read_first_phase(self, samples, file_number_left):
         sql_writer = SqlWriter()
         sql_reader = SqlReader()
 
@@ -23,7 +23,7 @@ class JsonToSqlWriter:
         start = time.time()
 
         # data reading first phase: works, authors
-        for work in samples:
+        for file_number, work in enumerate(samples, start=file_number_left):
             # read work's DOI
             DOI = work["DOI"]
             year = work["year"]
@@ -40,7 +40,7 @@ class JsonToSqlWriter:
                         sql_writer.add_new_author(given_name, family_name)
                         sql_writer.add_new_author_has_work(sql_reader.get_last_author_id(), DOI)
                     except mysql.connector.errors.DataError:
-                        print(given_name, family_name)
+                        print(f"Error: file {file_number}, name: {given_name}, surname: {family_name}")
 
             bar1.next()
 

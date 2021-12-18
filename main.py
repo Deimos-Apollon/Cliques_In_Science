@@ -14,7 +14,7 @@ if __name__ == "__main__":
     ]
     json_to_sql_writer = JsonToSqlWriter()
 
-    threads = [Thread(target=json_to_sql_writer.data_read_first_phase_from_files, args=(file_names[i],))
+    threads = [Thread(target=json_to_sql_writer.data_read_first_phase_from_files, args=(file_names[i], 130+i))
                for i in range(3)]
 
     start = time()
