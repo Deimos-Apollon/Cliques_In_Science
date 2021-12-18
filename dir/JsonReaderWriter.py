@@ -65,6 +65,8 @@ class JsonReaderWriter:
                     or '"' in author["given"] or ',' in author["given"] \
                     or '"' in author["family"] or ',' in author["family"]:
                 return False
+        if not len(elem["reference"]):
+            return False
         return True
 
     def __work_json_repr__(self, elem):
