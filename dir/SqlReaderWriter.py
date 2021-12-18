@@ -16,47 +16,45 @@ class SqlReaderWriter:
         except Error as e:
             raise ValueError(f'Error setting connection: {e}')
 
-    def __insert_new_author__(self, given_name, family_name, affilation, ORCID):
-        has_orcid = 1 if ORCID else 0
+    def __insert_new_author__(self, given_name, family_name):
 
         insert_author_query = fr'''
-                INSERT INTO author (given_name, family_name, affilation, has_orcid, ORCID)
-                VALUES ("{given_name}", "{family_name}", "{affilation}", {has_orcid}, "{ORCID}")
+                INSERT INTO author (given_name, family_name)
+                VALUES ("{given_name}", "{family_name}")
                 '''
         with self.connection.cursor() as cursor:
             cursor.execute(insert_author_query)
         self.connection.commit()
 
-    def add_new_author(self, given_name, family_name, affilation, ORCID):
+    def add_new_author(self, given_name, family_name):
         check_author_query = fr'''
             SELECT given_name FROM author WHERE given_name = ("{given_name}") AND family_name = ("{family_name}")
-             AND affilation = ("{affilation}") AND ORCID = ("{ORCID}")  Limit 1
+             Limit 1
         '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_author_query)
             do_exists = cursor.fetchall()
         if not do_exists:
-            self.__insert_new_author__(given_name, family_name, affilation, ORCID)
+            self.__insert_new_author__(given_name, family_name)
 
-    def __insert_new_work__(self, doi, date, references_count, is_referenced_count):
+    def __insert_new_work__(self, doi, year, references_count, is_referenced_count):
         insert_work_query = fr'''
                     INSERT INTO work
-                    VALUES ("{doi}", "{date}", {references_count}, {is_referenced_count})
+                    VALUES ("{doi}", "{year}", {references_count}, {is_referenced_count})
                     '''
         with self.connection.cursor() as cursor:
             cursor.execute(insert_work_query)
         self.connection.commit()
 
-    def add_new_work(self, doi, date, references_count, is_referenced_count):
+    def add_new_work(self, doi, year, references_count, is_referenced_count):
         check_work_query = fr'''
-                   SELECT doi FROM work WHERE DOI = ("{doi}") AND date=("{date}") AND
+                   SELECT doi FROM work WHERE DOI = ("{doi}") AND year=("{year}") AND
                    references_count=("{references_count}") AND is_referenced_count=("{is_referenced_count} Limit 1")
                '''
 
         with self.connection.cursor() as cursor:
             cursor.execute(check_work_query)
             do_exists = cursor.fetchall()
-
         if not do_exists:
             self.__insert_new_work__(doi, year, references_count, is_referenced_count)
 
@@ -113,22 +111,29 @@ class SqlReaderWriter:
         with self.connection.cursor() as cursor:
             cursor.execute(check_query)
             do_exists = cursor.fetchall()
-
         return do_exists
 
-    def check_if_ORCID_exists(self, orcid):
-        check_query = fr'''
-                SELECT ORCID FROM Author WHERE ORCID = '{orcid}'
-                '''
+    def get_last_author_id(self):    # TODO DELETE
+        get_query = fr'''
+            select id from author ORDER BY id DESC LIMIT 1;
+        '''
         with self.connection.cursor() as cursor:
-            cursor.execute(check_query)
-            do_exists = cursor.fetchall()
+            cursor.execute(get_query)
+            ans = cursor.fetchall()
+        return ans[0][0]
 
-        return do_exists
+    def count_author_works(self, ID):       # TODO DELETE
+        get_query = fr'''
+            SELECT COUNT(*) FROM author_has_work WHERE author_id=({ID})
+        '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            ans = cursor.fetchall()
+        return ans[0][0]
 
     def get_work_authors(self, doi):
         get_query = fr'''
-                       SELECT Author_ORCID FROM Author_has_Work WHERE Work_DOI = '{doi}'
+                       SELECT Author_ID FROM Author_has_Work WHERE Work_DOI = '{doi}'
                        '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)

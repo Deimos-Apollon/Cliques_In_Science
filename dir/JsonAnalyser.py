@@ -5,15 +5,14 @@ from progress.bar import IncrementalBar
 
 
 class JsonAnalyser:
-    def __init__(self, last_file_number):
+    def __init__(self, file_names, last_file_number):
         self.__works_count__ = 0
         self.__works_with_refs_list__ = 0
         self.__works_with_is_referenced__ = 0
         self.__subjects_count__ = Counter()
         self.__year_distribution__ = Counter()
         self.last_file_number = last_file_number
-        self.files_names = (fr'C:\Users\user\PycharmProjects\alt_exam_1\compressed_dataset\compressed_{i}.json'
-                            for i in range(self.last_file_number))
+        self.files_names = file_names
 
     def proceed(self):
         bar = IncrementalBar("JsonAnalyser proceed", max=self.last_file_number)
@@ -40,7 +39,7 @@ class JsonAnalyser:
         print()
         print(f"LOG: JsonReaderWriter.proceed total time in minutes: {(time.time() - start) / 60}\n")
 
-    def save_results(self):
+    def save_results(self, main_info_file, all_subjects_file):
         year_distribution_repr = {i[0]: i[1] for i in sorted(self.__year_distribution__.items())}
 
         subjects_count_repr = {i[0]: i[1] for i in self.__subjects_count__.most_common(100)}
@@ -51,11 +50,10 @@ class JsonAnalyser:
                            "Year distribution": year_distribution_repr,
                            "Top 100 subjects distribution": subjects_count_repr,}
                  }
-        with open(r"C:\Users\user\PycharmProjects\alt_exam_1\additional_files_output\json_analyser_main_info.json",
+        with open(main_info_file,
                   'w') as file:
             json.dump(items, file, indent=4)
 
         all_subject_distribution = {i[0]: i[1] for i in self.__subjects_count__.most_common()}
-        with open(r"C:\Users\user\PycharmProjects\alt_exam_1\additional_files_output\json_analyser_all_subjects"
-                  r".json", 'w') as file:
+        with open(all_subjects_file, 'w') as file:
             json.dump(all_subject_distribution, file, indent=4)

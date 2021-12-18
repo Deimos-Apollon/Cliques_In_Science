@@ -37,10 +37,12 @@ def data_read_first_phase(samples):
     bar1.finish()
     print()
     first_phase_time = time.time() - start
-    print(first_phase_time)
+    print(f"LOG: DataReader first phase time in minutes: {first_phase_time / 60}")
 
 
 def data_read_second_phase(samples):
+    bar1 = IncrementalBar("Reading second phase", max=len(samples))
+    start = time.time()
     # data reading second phase: adding refs
     for work in samples:
         work_DOI = work["DOI"]

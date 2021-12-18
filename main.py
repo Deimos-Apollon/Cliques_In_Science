@@ -1,8 +1,15 @@
 import time
 from collections import Counter
+
+from dir.DataReader import data_read_first_phase, data_read_second_phase
+from dir.JsonAnalyser import JsonAnalyser
 from dir.SqlReaderWriter import SqlReaderWriter
 from progress.bar import IncrementalBar
 from dir.JsonReaderWriter import JsonReaderWriter
+
+from dir.config import SQL_USER, SQL_PASS
+from mysql.connector import connect, Error, ProgrammingError
+
 
 import json
 import gzip
