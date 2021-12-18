@@ -1,4 +1,4 @@
-from dir.config import SQL_USER, SQL_PASS
+from source.config import SQL_USER, SQL_PASS
 from mysql.connector import connect, Error, ProgrammingError
 
 

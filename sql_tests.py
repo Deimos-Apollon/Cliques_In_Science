@@ -1,7 +1,6 @@
 from crossref.restful import Works
-from dir.SqlReaderWriter import SqlReaderWriter
+from source.Json.SqlWriter import SqlReaderWriter
 
-import json
 from collections import Counter
 
 def test():
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     res = works.filter(has_orcid='true', from_created_date='2005', until_created_date='2011')
 
     sqlrw = SqlReaderWriter()
-    got = sqlrw.get_all_author_citates_author()
+    got = sqlrw.get_all_citations()
 
 
     c = Counter()
