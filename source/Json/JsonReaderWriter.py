@@ -7,11 +7,11 @@ from progress.bar import IncrementalBar
 
 
 class JsonReaderWriter:
-    def __init__(self, file_names, file_to_write_prefix, min_vacant_json_file_number, left_border, right_border):
+    def __init__(self, src_file_names, file_to_write_prefix, min_vacant_json_file_number, left_border, right_border):
         self.__max_entry__ = 5000
         self.__current_json_file_number = min_vacant_json_file_number
         self.file_range = range(left_border, right_border)
-        self.file_names = file_names
+        self.src_file_names = src_file_names
         self.file_to_write_prefix = file_to_write_prefix
 
     def proceed(self):
@@ -24,7 +24,7 @@ class JsonReaderWriter:
 
         start = time.time()
         bar = IncrementalBar(f"Processing input files", max=len(self.file_range))
-        for file_number, input_path in enumerate(self.file_names):
+        for  input_path in self.src_file_names:
             with open(input_path, 'r') as file:
 
                 data = json.load(file)['items']
@@ -48,7 +48,7 @@ class JsonReaderWriter:
             json.dump(compressed_data, out_file)
         compressed_data = {'items': []}
         out_file.close()
-        print(f"LOG: JsonReaderWriter.proceed total time in minutes: {(time.time() - start) / 60}\n")
+        print(f"LOG: JsonReader.proceed total time in minutes: {(time.time() - start) / 60}\n")
 
     def __get_new_file_name__(self):
         self.__current_json_file_number += 1

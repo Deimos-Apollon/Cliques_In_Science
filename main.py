@@ -4,10 +4,26 @@ from source.JsonToSqlWriter import JsonToSqlWriter
 
 
 if __name__ == "__main__":
-    file_names = (fr'C:\Users\user\PycharmProjects\alt_exam_1\compressed_refs_dataset\compressed_refs_{i}.json' for i in range(1036))
-    file_to_write_prefix = r'C:\Users\user\PycharmProjects\alt_exam_1\medicine_refs_dataset\medicine_compressed_refs_'
-    json_rw = JsonReaderWriter(file_names, file_to_write_prefix, 0, 0, 1036)
-    json_rw.proceed()
+    file_names = [
+        [fr'C:\Users\user\PycharmProjects\alt_exam_1\dataset\medicine_refs_dataset\medicine_compressed_refs_{i}.json'
+         for i in range(130, 131)],
+        [fr'C:\Users\user\PycharmProjects\alt_exam_1\dataset\medicine_refs_dataset\medicine_compressed_refs_{i}.json'
+         for i in range(131, 132)],
+        [fr'C:\Users\user\PycharmProjects\alt_exam_1\dataset\medicine_refs_dataset\medicine_compressed_refs_{i}.json'
+         for i in range(132, 133)]
+    ]
+    json_to_sql_writer = JsonToSqlWriter()
 
-    # 0 - 5000 началось
-    # 128.9418012022972 min остальное
+    threads = [Thread(target=json_to_sql_writer.data_read_first_phase_from_files, args=(file_names[i],))
+               for i in range(3)]
+
+    start = time()
+    # init and start threads
+    for thread in threads:
+        thread.start()
+
+    # finish threads
+    for thread in threads:
+        thread.join()
+
+    print('finished', time() - start)
