@@ -3,18 +3,8 @@ from mysql.connector import connect, Error, ProgrammingError
 
 
 class SqlWriter:
-    def __init__(self):
-        self.connection = None
-        try:
-            self.connection = connect(
-                    host="localhost",
-                    user=SQL_USER,
-                    password=SQL_PASS,
-                    database='alt_exam'
-            )
-            print('Connected')
-        except Error as e:
-            raise ValueError(f'Error setting connection: {e}')
+    def __init__(self, connection):
+        self.connection = connection
 
     def __insert_new_author__(self, given_name, family_name):
 
@@ -49,7 +39,7 @@ class SqlWriter:
     def add_new_work(self, doi, year, references_count, is_referenced_count):
         check_work_query = fr'''
                    SELECT doi FROM work WHERE DOI = ("{doi}") AND year=("{year}") AND
-                   references_count=("{references_count}") AND is_referenced_count=("{is_referenced_count} Limit 1")
+                   references_count=("{references_count}") AND is_referenced_count=("{is_referenced_count}") Limit 1
                '''
 
         with self.connection.cursor() as cursor:

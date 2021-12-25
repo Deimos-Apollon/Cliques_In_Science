@@ -3,18 +3,8 @@ from mysql.connector import connect, Error, ProgrammingError
 
 
 class SqlReader:
-    def __init__(self):
-        self.connection = None
-        try:
-            self.connection = connect(
-                    host="localhost",
-                    user=SQL_USER,
-                    password=SQL_PASS,
-                    database='alt_exam'
-            )
-            print('Connected')
-        except Error as e:
-            raise ValueError(f'Error setting connection: {e}')
+    def __init__(self, connection):
+        self.connection = connection
 
     def check_if_DOI_exists(self, doi):
         check_query = fr'''
@@ -25,14 +15,14 @@ class SqlReader:
             do_exists = cursor.fetchall()
         return do_exists
 
-    def get_last_author_id(self):
+    def get_author_id(self, given, family):
         get_query = fr'''
-               select id from author ORDER BY id DESC LIMIT 1;
-           '''
+                        SELECT ID FROM Author where given_name = ("{given}") and family_name = ("{family}")
+                    '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
-            ans = cursor.fetchall()
-        return ans[0][0]
+            id = cursor.fetchall()
+        return id[0][0] if id else None
 
     def count_author_works(self, ID):
         get_query = fr'''
