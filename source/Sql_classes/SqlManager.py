@@ -1,7 +1,7 @@
 from source.Sql_classes.SqlReader import SqlReader
 from source.Sql_classes.SqlWriter import SqlWriter
 from source.config import SQL_USER, SQL_PASS
-from mysql.connector import connect, Error, ProgrammingError
+from mysql.connector import connect, Error
 
 class SqlManager:
     def __init__(self):

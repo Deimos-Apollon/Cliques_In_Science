@@ -104,10 +104,50 @@ class SqlWriter:
 
     def add_edge_to_graph(self, entry_ID):
         check_edge_query = fr'''
-                                Select ID from Graph where Author_Citates_Author_ID = {entry_ID}
+                                Select Author_Citates_Author_ID from Graph where Author_Citates_Author_ID = {entry_ID}
                             '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_edge_query)
             do_exists = cursor.fetchall()
         if not do_exists:
             self.__insert_edge_to_graph__(entry_ID)
+
+    def increment_citation(self, citation_id, amount):
+        update_query = fr'''
+                            UPDATE Author_citates_Author
+                            SET Total_refs = Total_refs+{amount} WHERE ID = {citation_id}
+                        '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(update_query)
+        self.connection.commit()
+
+    def delete_citation(self, citation_id):
+        delete_query = fr'''
+                            DELETE from Author_citates_Author WHERE ID = {citation_id}
+                        '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(delete_query)
+        self.connection.commit()
+
+    def update_author_id_in_citation(self, citation_id, new_author_id):
+        update_query = fr'''
+                          UPDATE Author_citates_Author
+                          SET Author_id = {new_author_id} WHERE ID = {citation_id}
+                      '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(update_query)
+        self.connection.commit()
+
+    def update_src_id_in_citation(self, citation_id, new_src_id):
+        update_query = fr'''
+                         UPDATE Author_citates_Author
+                         SET Src_id = {new_src_id} WHERE ID = {citation_id}
+                     '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(update_query)
+        self.connection.commit()
+
+    def execute_query(self, query):
+        with self.connection.cursor() as cursor:
+            cursor.execute(query)
+        self.connection.commit()

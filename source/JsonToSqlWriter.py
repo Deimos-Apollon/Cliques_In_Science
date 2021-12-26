@@ -16,7 +16,7 @@ class JsonToSqlWriter:
     def __data_read_first_phase(self, samples, file_number):
         sql_manager = SqlManager()
 
-        bar1 = IncrementalBar("Reading first phase", max=len(samples))
+        bar1 = IncrementalBar(f"Reading first phase file #{file_number}", max=len(samples))
         start = time.time()
 
         # data reading first phase: works, authors
@@ -28,17 +28,25 @@ class JsonToSqlWriter:
             is_referenced_count = work["is-referenced-by-count"]
 
             authors = work.get('author')
+            given_name = ""
+            family_name = ""
             if authors:
-                sql_writer.add_new_work(DOI, year, references_count, is_referenced_count)
-                for author in authors:
-                    given_name = author["given"]
-                    family_name = author["family"]
-                    try:
-                        sql_writer.add_new_author(given_name, family_name)
-                        sql_writer.add_new_author_has_work(sql_reader.get_last_author_id(), DOI)
-                    except mysql.connector.errors.DataError:
-                        print(f"Error: file {file_number}, name: {given_name}, surname: {family_name}")
+                try:
+                    sql_manager.writer.add_new_work(DOI, year, references_count, is_referenced_count)
+                    for author in authors:
+                        given_name = author["given"]
+                        family_name = author["family"]
 
+                        sql_manager.writer.add_new_author(given_name, family_name)
+                        author_id = sql_manager.reader.get_author_id(given_name, family_name)
+                        if author_id:
+                            sql_manager.writer.add_new_author_has_work(author_id, DOI)
+                        else:
+                            print(f"Error: file {file_number}, name: {given_name}, surname: {family_name}, "
+                                  f"error msg: no author id via name and family")
+                except mysql.connector.Error as err:
+                    print(f"Error: file {file_number}, name: {given_name}, surname: {family_name}, "
+                          f"error msg: {err.msg}")
             bar1.next()
 
         bar1.finish()
