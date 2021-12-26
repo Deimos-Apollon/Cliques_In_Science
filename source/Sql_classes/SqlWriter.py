@@ -18,7 +18,7 @@ class SqlWriter:
 
     def add_new_author(self, given_name, family_name):
         check_author_query = fr'''
-            SELECT given_name FROM author WHERE given_name = ("{given_name}") AND family_name = ("{family_name}")
+            SELECT ID FROM author WHERE given_name = ("{given_name}") AND family_name = ("{family_name}")
              Limit 1
         '''
         with self.connection.cursor() as cursor:
@@ -130,6 +130,12 @@ class SqlWriter:
         self.connection.commit()
 
     def update_author_id_in_citation(self, citation_id, new_author_id):
+        # query_foreign_key = fr'''
+        #             ALTER TABLE `alt_exam`.`author_citates_author` DROP FOREIGN KEY `fk_Author_has_Author_Author1`
+        #             ALTER TABLE `alt_exam`.`author_citates_author` ADD CONSTRAINT `fk_Author_has_Author_Author1`
+        #                 FOREIGN KEY (`Author_ID`) REFERENCES `alt_exam`.`author`(`id`) ON UPDATE SET NULL ON DELETE CASCADE
+        #                     '''
+        # self.execute_query(query_foreign_key)
         update_query = fr'''
                           UPDATE Author_citates_Author
                           SET Author_id = {new_author_id} WHERE ID = {citation_id}
@@ -139,6 +145,12 @@ class SqlWriter:
         self.connection.commit()
 
     def update_src_id_in_citation(self, citation_id, new_src_id):
+        # query_foreign_key = fr'''
+        #                     ALTER TABLE `alt_exam`.`author_citates_author` DROP FOREIGN KEY `fk_Author_has_Author_Author2`
+        #                     ALTER TABLE `alt_exam`.`author_citates_author` ADD CONSTRAINT `fk_Author_has_Author_Author2`
+        #                         FOREIGN KEY (`Src_id`) REFERENCES `alt_exam`.`author`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
+        #                             '''
+        # self.execute_query(query_foreign_key)
         update_query = fr'''
                          UPDATE Author_citates_Author
                          SET Src_id = {new_src_id} WHERE ID = {citation_id}

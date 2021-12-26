@@ -21,19 +21,44 @@ class SqlProcessor:
                 co_citation_id = self.sql_manager.reader.get_citation_from_citations_via_authors(src, author)
                 if co_citation_id:
                     self.sql_manager.writer.add_edge_to_graph(i)
-                    self.sql_manager.writer.add_edge_to_graph(co_citation_id)
+                    if co_citation_id != i:
+                        self.sql_manager.writer.add_edge_to_graph(co_citation_id)
             bar.next()
 
         bar.finish()
         print("Edges adding time in minutes:", (time.time() - start) / 60)
 
     def merge_authors(self):
+        # query_foreign_key = fr'''
+        #                         ALTER TABLE `alt_exam`.`author_citates_author` DROP FOREIGN KEY `fk_Author_has_Author_Author1`;
+        #
+        #                     '''
+        # self.sql_manager.writer.execute_query(query_foreign_key)
+        # print('Автор айди в a_c_а готов')
+        # query_foreign_key = fr'''
+        #                         ALTER TABLE `alt_exam`.`author_citates_author` DROP FOREIGN KEY `fk_Author_has_Author_Author2`;
+        #
+        #                     '''
+        # self.sql_manager.writer.execute_query(query_foreign_key)
+        # print('Src айди в a_c_а готов')
+        # query_foreign_key = fr'''
+        #                         ALTER TABLE `alt_exam`.`author_has_work` DROP FOREIGN KEY `fk_Author_has_work_Author`;
+        #
+        #                     '''
+        # self.sql_manager.writer.execute_query(query_foreign_key)
+        # print('Все ёпта')
+
         with open("merge_authors_logs.txt", 'w') as file:
             short_author_ids_with_short_names = self.sql_manager.reader.get_authors_with_short_names()
-            for short_author_id in short_author_ids_with_short_names:
+            bar = IncrementalBar("Authors_merging", max=len(short_author_ids_with_short_names))
+            bar.start()
+            for short_author_id in short_author_ids_with_short_names[20000:]:
+                bar.next()
                 short_author_id = short_author_id[0] # распаковываем тапл
                 try:
                     short_author_given, short_author_family = self.sql_manager.reader.get_author_name(short_author_id)
+                    if len(short_author_given) < 2:
+                        continue
                     if short_author_given[1] != '.':  # если не сокращение
                         continue
                     full_authors_ids = self.sql_manager.reader.get_src_authors(short_author_id)
@@ -42,26 +67,29 @@ class SqlProcessor:
                     if full_authors_ids is not None:
                         for full_author_id in full_authors_ids:
                             full_author_id = full_author_id[0] # распаковываем тапл
-                            full_author_given, full_author_family = self.sql_manager.reader.get_author_name(full_author_id)
-                            if short_author_given[0] == full_author_given[0] and short_author_family == full_author_family:
-                                if valid_full_author_id is not None:
-                                    file.write(f"Несколько вариаций для автора с id = {short_author_id}\n")
-                                    valid_full_author_id = None
-                                    break
-                                else:
-                                    valid_full_author_id = full_author_id
+                            if short_author_id != full_author_id:
+                                full_author_given, full_author_family = self.sql_manager.reader.get_author_name(full_author_id)
+                                if short_author_given[0] == full_author_given[0] and short_author_family == full_author_family:
+                                    if valid_full_author_id is not None:
+                                        file.write(f"WARN: Несколько вариаций для автора с id = {short_author_id}\n")
+                                        valid_full_author_id = None
+                                        break
+                                    else:
+                                        valid_full_author_id = full_author_id
                     # если был только 1 подходящий автор - мержим
                     if valid_full_author_id is not None:
-
-                        # СЛИЯНИЕ В AUTHOR_HAS_WORK
-                        self.__merge_author_has_work(short_author_id, valid_full_author_id)
 
                         # СЛИЯНИЕ В AUTHOR_CITATES_AUTHOR
                         self.__merge_citations_short_to_someone(short_author_id, valid_full_author_id)
                         self.__merge_citations_someone_to_short(short_author_id, valid_full_author_id)
 
+                        # СЛИЯНИЕ В AUTHOR_HAS_WORK
+                        self.__merge_author_has_work(short_author_id, valid_full_author_id)
+
                         # СЛИЯНИЕ В AUTHOR
                         self.__merge_authors(short_author_id, valid_full_author_id)
+
+                        file.write(f"COMP: Выполнилось слияние {short_author_id} с {valid_full_author_id}\n")
                 except mysql_Error as e:
                     print(f"LOG: error in merge_authors: {e.msg}\n")
 
@@ -72,16 +100,24 @@ class SqlProcessor:
         self.sql_manager.writer.execute_query(update_query)
 
     def __merge_author_has_work(self, short_author_id, full_author_id):
-        update_query = fr'''
-                         UPDATE Author_has_work
-                         SET Author_ID = {full_author_id} WHERE Author_ID = {short_author_id}
+        get_query = fr'''
+                         SELECT * FROM Author_has_work where Author_ID = {short_author_id}
                      '''
-        self.sql_manager.writer.execute_query(update_query)
+        entries_author_has_work = self.sql_manager.reader.execute_get_query(get_query)
+        if entries_author_has_work:
+            for entry in entries_author_has_work:
+
+                update_query = fr'''
+                                 REPLACE INTO Author_has_work VALUES ({entry[0]}, {full_author_id}, "{entry[2]}")
+                             '''
+                self.sql_manager.writer.execute_query(update_query)
 
     def __merge_citations_short_to_someone(self, short_author_id, full_author_id):
         # берем айди всех цитат, где источник цитаты - автор короткий
         ids_short_to_someone = self.sql_manager.reader.get_all_citation_from_citations_via_author_id(
             short_author_id)
+        if not ids_short_to_someone:
+            return
         for short_to_someone in ids_short_to_someone:
             # получаем из цитаты айди автора короткого и айди на кого он ссылается
             short_to_someone = short_to_someone[0]   # распаковываем тапл
@@ -101,6 +137,8 @@ class SqlProcessor:
         # берем айди всех цитат, где ссылаются на автора короткого
         ids_someone_to_short = self.sql_manager.reader.get_all_citation_from_citations_via_src_id(
             short_author_id)
+        if not ids_someone_to_short:
+            return
         for someone_to_short in ids_someone_to_short:
             # получаем из цитаты айди кто ссылается и айди автора короткого
             someone_to_short = someone_to_short[0]  # распаковываем тапл
