@@ -1,5 +1,5 @@
-from threading import Thread
-from time import time, sleep
+import json
+from collections import Counter
 
 from source.Graph_Processing.GraphAlgos.FindComponents import ComponentsFinder
 from source.Graph_Processing.SqlGraphReader import SqlGraphReader
@@ -20,8 +20,14 @@ if __name__ == "__main__":
 
     # print(*sql_graph.get_all_vertices())
     # print(*sql_graph.get_incidence_lists().items())
-    print(finder.find_comps())
-
+    lengths = Counter()
+    with open(r"F:\\Downloads\astronomy_compressed_refs_1.json") as file:
+        data = json.load(file)["items"]
+        for elem in (data):
+            references = elem.get("reference")
+            if len(references) == 656:
+                print(elem['DOI'])
+    print(sorted(lengths.keys()))
     # file_names = [
     #     [fr'C:\Users\diest\PycharmProjects\Alt_exam\source\dataset\medicine_refs_dataset\medicine_compressed_refs_{i}.json' for i in range(j, j+10)]
     #      for j in range(5, 134, 10)

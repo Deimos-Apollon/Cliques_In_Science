@@ -30,7 +30,7 @@ class SqlWriter:
     def __insert_new_work__(self, doi, year, references_count, is_referenced_count):
         insert_work_query = fr'''
                     INSERT INTO work
-                    VALUES ("{doi}", "{year}", {references_count}, {is_referenced_count})
+                    VALUES ("{doi}", {year}, {references_count}, {is_referenced_count})
                     '''
         with self.connection.cursor() as cursor:
             cursor.execute(insert_work_query)
@@ -72,8 +72,8 @@ class SqlWriter:
     def __increment_author_citates_author__(self, main_ID, source_ID):
         increment_work_query = fr'''
                  UPDATE Author_citates_Author
-                 SET Total_refs = Total_refs+1 WHERE Author_ID = '{main_ID}'
-                 and Src_ID = '{source_ID}'
+                 SET Total_refs = Total_refs+1 WHERE Author_ID = {main_ID}
+                 and Src_ID = {source_ID}
              '''
         with self.connection.cursor() as cursor:
             cursor.execute(increment_work_query)
@@ -81,8 +81,8 @@ class SqlWriter:
 
     def add_new_author_citates_author(self, main_ID, source_ID):
         check_author_citates_author_query = fr'''
-                   SELECT * FROM Author_citates_Author WHERE Author_ID = '{main_ID}' 
-                   and Src_ID = '{source_ID}' 
+                   SELECT * FROM Author_citates_Author WHERE Author_ID = {main_ID}
+                   and Src_ID = {source_ID}
                '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_author_citates_author_query)
