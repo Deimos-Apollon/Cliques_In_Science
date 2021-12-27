@@ -1,6 +1,9 @@
+from progress.bar import IncrementalBar
 
 from source.Graph_Processing.SqlGraphManager import SqlGraphManager
 from collections import defaultdict
+
+from source.Sql_classes.SqlManager import SqlManager
 
 
 class ComponentsFinder:
@@ -25,15 +28,29 @@ class ComponentsFinder:
     def bfs(self, current_color):
         vertex = self.vertices_not_visited.pop()
         self.vertices_not_visited.add(vertex)
-        self.vertices_not_visited_num -= 1
-
+        bar = IncrementalBar("Processing in bfs", max=self.vertices_not_visited_num)
         queue = [vertex]
         while queue:
             vertex = queue[0]
             for child, edge_id in self.incidence_lists[vertex]:
                 if child in self.vertices_not_visited:
-                    self.sql_graph_manager.graph_writer.add_edge_in_component(current_color, edge_id)
+                    co_id = self.__find_co_edge(vertex, child)
+                    if co_id:
+                        self.sql_graph_manager.graph_writer.add_edge_in_component(current_color, edge_id)
+                        if co_id != edge_id:
+                            self.sql_graph_manager.graph_writer.add_edge_in_component(current_color, co_id)
+                    else:
+                        print("ERROR: нет co_id")
                     if child not in queue:
                         queue.append(child)
             queue.pop(0)
             self.vertices_not_visited.remove(vertex)
+            self.vertices_not_visited_num -= 1
+            bar.next()
+        bar.finish()
+
+    def __find_co_edge(self, vertex, child):
+        for elem in self.incidence_lists[child]:
+            if elem[0] == vertex:
+                return elem[1]
+        return None
