@@ -57,3 +57,18 @@ class SqlGraphReader:
                 author_id, src_id = try_got_authors[0], try_got_authors[1]
                 edges.add((author_id, src_id))
         return edges
+
+    def get_component_incidence_lists(self, component_color):
+        incidence_lists = defaultdict(set)
+        get_query = fr'''
+                             SELECT Graph_edge_ID FROM Component where Component_color = {component_color}
+                        '''
+        entry = self.sql_manager.reader.execute_get_query(get_query)
+        if entry is not None:
+            for citation in entry:
+                if citation:
+                    citation = citation[0]
+                    author_id, source_id = self.sql_manager.reader.get_authors_from_citations_via_id(citation)
+                    # храним вершину и ребро по которому они смежны
+                    incidence_lists[author_id].add((source_id, citation))
+        return incidence_lists if incidence_lists else None

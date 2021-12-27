@@ -13,7 +13,7 @@ class SqlManager:
                 password=SQL_PASS,
                 database='alt_exam'
             )
-            print('Connected')
+            print('Sql Manager Connected')
         except Error as e:
             raise ValueError(f'Error setting connection: {e}')
         self.writer = SqlWriter(self.connection)

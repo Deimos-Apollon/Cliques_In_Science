@@ -23,16 +23,14 @@ class GraphPrinter:
         g.view()
 
     def save_component(self, component_color):
-        g = graphviz.Graph('G', filename=f'component_{component_color}.gv')
+        g = graphviz.Digraph('G', filename=f'component_{component_color}.gv')
         edges = self.sql_graph_manager.graph_reader.get_component_edges(component_color)
         bar = IncrementalBar("SavingGraph", max=len(edges))
         bar.start()
-        if len(edges) > 65000:
-            print(f'ERR: too big graph! edges_len: {len(edges)}')
-            return
+
         edges = list(edges)
         for elem in edges:
             g.edge(f"{elem[0]}", f"{elem[1]}")
             bar.next()
         bar.finish()
-        g.view()
+        g.save()
