@@ -58,7 +58,15 @@ class SqlWriter:
         self.connection.commit()
 
     def add_new_author_has_work(self, ID, DOI):
-        self.__insert_new_author_has_work__(ID, DOI)
+        check_query = fr'''
+                  SELECT Count(*) FROM Author_has_Work WHERE Author_ID = {ID}
+                   and Work_DOI = "{DOI}" Limit 1
+             '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(check_query)
+            do_exists = cursor.fetchall()
+        if do_exists[0][0] == 0:
+            self.__insert_new_author_has_work__(ID, DOI)
 
     def __insert_new_author_cites_author__(self, main_ID, source_ID):
         insert_work_query = fr'''
@@ -81,13 +89,23 @@ class SqlWriter:
         if do_exists[0][0] == 0:
             self.__insert_new_author_cites_author__(main_ID, source_ID)
 
-    def add_new_work_cites_work(self, work_DOI, src_DOI):
+    def __insert_new_work_cites_work(self, work_DOI, src_DOI):
         insert_query = fr'''
-                        INSERT INTO work_cites_work (Work_DOI, Src_DOI) VALUES ("{work_DOI}", "{src_DOI}")
-                '''
+                               INSERT INTO work_cites_work (Work_DOI, Src_DOI) VALUES ("{work_DOI}", "{src_DOI}")
+                       '''
         with self.connection.cursor() as cursor:
             cursor.execute(insert_query)
         self.connection.commit()
+
+    def add_new_work_cites_work(self, work_DOI, src_DOI):
+        check_query = fr'''
+                        SELECT COUNT(*) FROM Work where DOI = "{src_DOI}" LIMIT 1
+                '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(check_query)
+            do_exists = cursor.fetchall()
+        if do_exists[0][0] != 0:
+            self.__insert_new_work_cites_work(work_DOI, src_DOI)
 
     def __insert_edge_to_graph__(self, entry_ID):
         insert_edge_query = fr'''
@@ -117,12 +135,6 @@ class SqlWriter:
         self.connection.commit()
 
     def update_author_id_in_citation(self, citation_id, new_author_id):
-        # query_foreign_key = fr'''
-        #             ALTER TABLE `alt_exam`.`author_cites_author` DROP FOREIGN KEY `fk_Author_has_Author_Author1`
-        #             ALTER TABLE `alt_exam`.`author_cites_author` ADD CONSTRAINT `fk_Author_has_Author_Author1`
-        #                 FOREIGN KEY (`Author_ID`) REFERENCES `alt_exam`.`author`(`id`) ON UPDATE SET NULL ON DELETE CASCADE
-        #                     '''
-        # self.execute_query(query_foreign_key)
         update_query = fr'''
                           UPDATE author_cites_author
                           SET Author_id = {new_author_id} WHERE ID = {citation_id}
@@ -132,12 +144,6 @@ class SqlWriter:
         self.connection.commit()
 
     def update_src_id_in_citation(self, citation_id, new_src_id):
-        # query_foreign_key = fr'''
-        #                     ALTER TABLE `alt_exam`.`author_cites_author` DROP FOREIGN KEY `fk_Author_has_Author_Author2`
-        #                     ALTER TABLE `alt_exam`.`author_cites_author` ADD CONSTRAINT `fk_Author_has_Author_Author2`
-        #                         FOREIGN KEY (`Src_id`) REFERENCES `alt_exam`.`author`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
-        #                             '''
-        # self.execute_query(query_foreign_key)
         update_query = fr'''
                          UPDATE author_cites_author
                          SET Src_id = {new_src_id} WHERE ID = {citation_id}
