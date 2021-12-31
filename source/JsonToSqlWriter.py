@@ -73,13 +73,15 @@ class JsonToSqlWriter:
                 references = work['reference']
                 for src in references:
                     src_DOI = src['DOI']
+                    # add work cites work
+                    sql_manager.writer.add_new_work_cites_work(work_DOI, src_DOI)
 
                     # read author_citates_author
                     src_authors = sql_manager.reader.get_authors_of_work(src_DOI)
                     if src_authors:
                         for src_author in src_authors:
                             for work_author in work_authors:
-                                sql_manager.writer.add_new_author_citates_author(work_author[0], src_author[0])
+                                sql_manager.writer.add_new_author_cites_author(work_author[0], src_author[0])
 
             except mysql.connector.Error as err:
                 print(f"Error: file {file_number}, work_doi: {work_DOI} "

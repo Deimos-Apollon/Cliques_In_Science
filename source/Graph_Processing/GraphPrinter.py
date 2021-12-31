@@ -24,7 +24,7 @@ class GraphPrinter:
 
     def save_component(self, component_color):
         g = graphviz.Digraph('G', filename=f'component_{component_color}.gv')
-        edges = self.sql_graph_manager.graph_reader.get_component_edges(component_color)
+        edges = self.sql_graph_manager.graph_reader.get_unique_component_edges(component_color)
         bar = IncrementalBar("SavingGraph", max=len(edges))
         bar.start()
 
