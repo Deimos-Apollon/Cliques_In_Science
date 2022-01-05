@@ -8,7 +8,7 @@ class SqlGraphReader:
     # def get_all_vertices(self):
     #     vertices = set()
     #     get_query = fr'''
-    #                       SELECT Author_citates_Author_ID FROM Graph
+    #                       SELECT Author_citates_Author_ID FROM graph
     #                  '''
     #     entry = self.sql_manager.reader.execute_get_query(get_query)
     #     if entry is not None:
@@ -22,7 +22,7 @@ class SqlGraphReader:
     def get_incidence_lists(self):
         incidence_lists = defaultdict(set)
         get_query = fr'''
-                             SELECT Author_citates_Author_ID FROM Graph
+                             SELECT Author_citates_Author_ID FROM graph
                         '''
         entry = self.sql_manager.reader.execute_get_query(get_query)
         if entry is not None:
@@ -37,7 +37,7 @@ class SqlGraphReader:
     def get_edges(self):
         edges = set()
         get_query = fr'''
-                          SELECT Author_citates_Author_ID FROM Graph
+                          SELECT Author_citates_Author_ID FROM graph
                      '''
         for citation in self.sql_manager.reader.execute_get_query(get_query):
             try_got_authors = self.sql_manager.reader.get_authors_from_citations_via_id(citation[0])
@@ -49,7 +49,7 @@ class SqlGraphReader:
     def get_component_edges(self, component_color):
         edges = set()
         get_query = fr'''
-                          SELECT Graph_edge_ID FROM Component where Component_color = {component_color}
+                          SELECT graph_edge_ID FROM component where Component_color = {component_color}
                      '''
         for citation in self.sql_manager.reader.execute_get_query(get_query):
             try_got_authors = self.sql_manager.reader.get_authors_from_citations_via_id(citation[0])
@@ -61,7 +61,7 @@ class SqlGraphReader:
     def get_unique_component_edges(self, component_color):
         edges = set()
         get_query = fr'''
-                             SELECT Graph_edge_ID FROM Component where Component_color = {component_color}
+                             SELECT graph_edge_ID FROM component where Component_color = {component_color}
                         '''
         for citation in self.sql_manager.reader.execute_get_query(get_query):
             try_got_authors = self.sql_manager.reader.get_authors_from_citations_via_id(citation[0])
@@ -74,7 +74,7 @@ class SqlGraphReader:
     def get_component_incidence_lists(self, component_color):
         incidence_lists = defaultdict(set)
         get_query = fr'''
-                             SELECT Graph_edge_ID FROM Component where Component_color = {component_color}
+                             SELECT graph_edge_ID FROM component where Component_color = {component_color}
                         '''
         entry = self.sql_manager.reader.execute_get_query(get_query)
         if entry is not None:

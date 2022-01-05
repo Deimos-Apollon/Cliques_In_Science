@@ -8,7 +8,7 @@ class SqlReader:
 
     def check_if_DOI_exists(self, doi):
         check_query = fr'''
-               SELECT DOI FROM Work WHERE DOI = '{doi}'
+               SELECT DOI FROM work WHERE DOI = '{doi}'
                '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_query)
@@ -17,7 +17,7 @@ class SqlReader:
 
     def get_author_id(self, given, family):
         get_query = fr'''
-                        SELECT ID FROM Author where given_name = ("{given}") and family_name = ("{family}")
+                        SELECT ID FROM author where given_name = ("{given}") and family_name = ("{family}")
                     '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -35,16 +35,34 @@ class SqlReader:
 
     def get_authors_of_work(self, doi):
         get_query = fr'''
-                          SELECT Author_ID FROM Author_has_Work WHERE Work_DOI = '{doi}'
+                          SELECT author_ID FROM author_has_work WHERE work_DOI = '{doi}'
                           '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
             authors = cursor.fetchall()
         return authors
 
+    def get_references_dois_of_work(self, work_doi):
+        get_query = fr'''
+                          SELECT Src_DOI FROM work_cites_work WHERE Work_DOI = "{work_doi}"
+                    '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            refs_doi = cursor.fetchall()
+        return refs_doi
+
+    def get_author_works(self, author_id):
+        get_query = fr'''
+                      SELECT Work_DOI FROM author_has_work WHERE Author_ID = {author_id}
+                      '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            works = cursor.fetchall()
+        return works
+
     def get_all_authors(self):
         get_query = fr'''
-                          SELECT ID FROM Author
+                          SELECT ID FROM author
                        '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -53,16 +71,16 @@ class SqlReader:
 
     def get_all_citations(self):
         get_query = fr'''
-                            SELECT * FROM Author_citates_Author
+                            SELECT * FROM author_cites_author
                    '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
-            authors_citates_authors = cursor.fetchall()
-        return authors_citates_authors
+            authors_cites_authors = cursor.fetchall()
+        return authors_cites_authors
 
     def get_number_citations(self):
         get_query = fr'''
-                            SELECT ID FROM Author_citates_Author ORDER BY ID DESC Limit 1
+                            SELECT ID FROM author_cites_author ORDER BY ID DESC Limit 1
                    '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -72,7 +90,7 @@ class SqlReader:
 
     def get_citation_id_from_graph(self, entry_ID):
         get_query = fr'''
-                            SELECT Author_Citates_Author_ID from Graph where ID = {entry_ID}
+                            SELECT author_Citates_author_ID from graph where ID = {entry_ID}
                    '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -81,25 +99,25 @@ class SqlReader:
 
     def get_authors_from_citations_via_id(self, entry_ID):
         get_query = fr'''
-                        SELECT Author_ID, Src_ID FROM Author_citates_Author WHERE ID = {entry_ID}
+                        SELECT author_ID, Src_ID FROM author_cites_author WHERE ID = {entry_ID}
                    '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
             entry = cursor.fetchall()
         return entry[0] if entry else None
 
-    def get_citation_from_citations_via_authors(self, Author_ID, Src_ID):
+    def get_citation_from_citations_via_authors(self, author_ID, Src_ID):
         get_query = fr'''
-                           SELECT ID FROM Author_citates_Author WHERE Author_ID = {Author_ID} and Src_ID = {Src_ID}
+                           SELECT ID FROM author_cites_author WHERE author_ID = {author_ID} and Src_ID = {Src_ID}
                       '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
             entry = cursor.fetchall()
         return entry[0][0] if entry else None
 
-    def get_all_citation_from_citations_via_author_id(self, Author_ID):
+    def get_all_citation_from_citations_via_author_id(self, author_ID):
         get_query = fr'''
-                          SELECT ID FROM Author_citates_Author WHERE Author_ID = {Author_ID}
+                          SELECT ID FROM author_cites_author WHERE author_ID = {author_ID}
                      '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -108,7 +126,7 @@ class SqlReader:
 
     def get_all_citation_from_citations_via_src_id(self, Src_ID):
         get_query = fr'''
-                          SELECT ID FROM Author_citates_Author WHERE Src_ID = {Src_ID}
+                          SELECT ID FROM author_cites_author WHERE Src_ID = {Src_ID}
                      '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -117,7 +135,7 @@ class SqlReader:
 
     def get_authors_with_short_names(self):
         get_query = fr'''
-                            SELECT ID FROM Author WHERE CHAR_LENGTH(given_name) < 5
+                            SELECT ID FROM author WHERE CHAR_LENGTH(given_name) < 5
                       '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -126,7 +144,7 @@ class SqlReader:
 
     def get_src_authors(self, author_id):
         get_query = fr'''
-                            SELECT src_id FROM Author_citates_Author WHERE Author_ID = {author_id}
+                            SELECT src_id FROM author_cites_author WHERE author_ID = {author_id}
                       '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
@@ -135,21 +153,12 @@ class SqlReader:
 
     def get_author_name(self, author_id):
         get_query = fr'''
-                        SELECT given_name, family_name FROM Author WHERE ID = {author_id}
+                        SELECT given_name, family_name FROM author WHERE ID = {author_id}
                     '''
         with self.connection.cursor() as cursor:
             cursor.execute(get_query)
             entry = cursor.fetchall()
         return entry[0] if entry else None
-
-    def get_total_refs_from_citation(self, citation_id):
-        get_query = fr'''
-                           SELECT total_refs  FROM Author_citates_Author WHERE ID = {citation_id}
-                      '''
-        with self.connection.cursor() as cursor:
-            cursor.execute(get_query)
-            entry = cursor.fetchall()
-        return entry[0][0] if entry else None
 
     def execute_get_query(self, query):
         with self.connection.cursor() as cursor:

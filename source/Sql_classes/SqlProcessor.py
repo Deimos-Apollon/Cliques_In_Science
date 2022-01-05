@@ -29,28 +29,9 @@ class SqlProcessor:
         print("Edges adding time in minutes:", (time.time() - start) / 60)
 
     def merge_authors(self):
-        # query_foreign_key = fr'''
-        #                         ALTER TABLE `alt_exam`.`author_citates_author` DROP FOREIGN KEY `fk_Author_has_Author_Author1`;
-        #
-        #                     '''
-        # self.sql_manager.writer.execute_query(query_foreign_key)
-        # print('Автор айди в a_c_а готов')
-        # query_foreign_key = fr'''
-        #                         ALTER TABLE `alt_exam`.`author_citates_author` DROP FOREIGN KEY `fk_Author_has_Author_Author2`;
-        #
-        #                     '''
-        # self.sql_manager.writer.execute_query(query_foreign_key)
-        # print('Src айди в a_c_а готов')
-        # query_foreign_key = fr'''
-        #                         ALTER TABLE `alt_exam`.`author_has_work` DROP FOREIGN KEY `fk_Author_has_work_Author`;
-        #
-        #                     '''
-        # self.sql_manager.writer.execute_query(query_foreign_key)
-        # print('Все ёпта')
-
         with open("merge_authors_logs.txt", 'w') as file:
             short_author_ids_with_short_names = self.sql_manager.reader.get_authors_with_short_names()
-            bar = IncrementalBar("Authors_merging", max=len(short_author_ids_with_short_names))
+            bar = IncrementalBar("authors_merging", max=len(short_author_ids_with_short_names))
             bar.start()
             for short_author_id in short_author_ids_with_short_names[20000:]:
                 bar.next()
@@ -95,20 +76,20 @@ class SqlProcessor:
 
     def __merge_authors(self, short_author_id, full_author_id):
         update_query = fr'''
-                         Delete from Author where id = {short_author_id}
+                         Delete from author where id = {short_author_id}
                      '''
         self.sql_manager.writer.execute_query(update_query)
 
     def __merge_author_has_work(self, short_author_id, full_author_id):
         get_query = fr'''
-                         SELECT * FROM Author_has_work where Author_ID = {short_author_id}
+                         SELECT * FROM author_has_work where author_ID = {short_author_id}
                      '''
         entries_author_has_work = self.sql_manager.reader.execute_get_query(get_query)
         if entries_author_has_work:
             for entry in entries_author_has_work:
 
                 update_query = fr'''
-                                 REPLACE INTO Author_has_work VALUES ({entry[0]}, {full_author_id}, "{entry[2]}")
+                                 REPLACE INTO author_has_work VALUES ({entry[0]}, {full_author_id}, "{entry[2]}")
                              '''
                 self.sql_manager.writer.execute_query(update_query)
 

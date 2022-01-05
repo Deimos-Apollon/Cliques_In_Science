@@ -50,7 +50,7 @@ class SqlWriter:
 
     def __insert_new_author_has_work__(self, ID, DOI):
         insert_author_has_work_query = fr'''
-                        INSERT INTO Author_has_Work (Author_ID, Work_DOI)
+                        INSERT INTO author_has_work (author_ID, work_DOI)
                         VALUES ({ID}, "{DOI}")
                     '''
         with self.connection.cursor() as cursor:
@@ -59,8 +59,8 @@ class SqlWriter:
 
     def add_new_author_has_work(self, ID, DOI):
         check_query = fr'''
-                  SELECT Count(*) FROM Author_has_Work WHERE Author_ID = {ID}
-                   and Work_DOI = "{DOI}" Limit 1
+                  SELECT Count(*) FROM author_has_work WHERE author_ID = {ID}
+                   and work_DOI = "{DOI}" Limit 1
              '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_query)
@@ -70,7 +70,7 @@ class SqlWriter:
 
     def __insert_new_author_cites_author__(self, main_ID, source_ID):
         insert_work_query = fr'''
-                 INSERT INTO author_cites_author (Author_ID, Src_ID)
+                 INSERT INTO author_cites_author (author_ID, Src_ID)
                  VALUES ({main_ID}, {source_ID})
              '''
         with self.connection.cursor() as cursor:
@@ -79,7 +79,7 @@ class SqlWriter:
 
     def add_new_author_cites_author(self, main_ID, source_ID):
         check_author_cites_author_query = fr'''
-                   SELECT Count(*) FROM author_cites_author WHERE Author_ID = {main_ID}
+                   SELECT Count(*) FROM author_cites_author WHERE author_ID = {main_ID}
                    and Src_ID = {source_ID} Limit 1
                '''
         with self.connection.cursor() as cursor:
@@ -91,7 +91,7 @@ class SqlWriter:
 
     def __insert_new_work_cites_work(self, work_DOI, src_DOI):
         insert_query = fr'''
-                               INSERT INTO work_cites_work (Work_DOI, Src_DOI) VALUES ("{work_DOI}", "{src_DOI}")
+                               INSERT INTO work_cites_work (work_DOI, Src_DOI) VALUES ("{work_DOI}", "{src_DOI}")
                        '''
         with self.connection.cursor() as cursor:
             cursor.execute(insert_query)
@@ -99,7 +99,7 @@ class SqlWriter:
 
     def add_new_work_cites_work(self, work_DOI, src_DOI):
         check_query = fr'''
-                        SELECT COUNT(*) FROM Work where DOI = "{src_DOI}" LIMIT 1
+                        SELECT COUNT(*) FROM work where DOI = "{src_DOI}" LIMIT 1
                 '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_query)
@@ -109,7 +109,7 @@ class SqlWriter:
 
     def __insert_edge_to_graph__(self, entry_ID):
         insert_edge_query = fr'''
-                                   INSERT INTO Graph (author_cites_author_ID)
+                                   INSERT INTO graph (Author_citates_Author_ID)
                                    VALUES ({entry_ID})
                                '''
         with self.connection.cursor() as cursor:
@@ -118,7 +118,7 @@ class SqlWriter:
 
     def add_edge_to_graph(self, entry_ID):
         check_edge_query = fr'''
-                                Select author_cites_author_ID from Graph where author_cites_author_ID = {entry_ID}
+                                Select Author_citates_Author_ID from graph where Author_citates_Author_ID = {entry_ID}
                             '''
         with self.connection.cursor() as cursor:
             cursor.execute(check_edge_query)
@@ -137,7 +137,7 @@ class SqlWriter:
     def update_author_id_in_citation(self, citation_id, new_author_id):
         update_query = fr'''
                           UPDATE author_cites_author
-                          SET Author_id = {new_author_id} WHERE ID = {citation_id}
+                          SET author_id = {new_author_id} WHERE ID = {citation_id}
                       '''
         with self.connection.cursor() as cursor:
             cursor.execute(update_query)

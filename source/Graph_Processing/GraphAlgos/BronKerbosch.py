@@ -13,12 +13,13 @@ class BronKerboschManager:
         self.compsub = set()
         self.vertices_not = set()
         self.clique = []
-        sys.setrecursionlimit(2000)
 
     def bron_kerbosch(self, component_color):
         self.incidence_lists = self.sql_graph_manager.graph_reader.get_component_incidence_lists(component_color)
         candidates = set(self.incidence_lists.keys())
+        self.compsub = set()
         vertices_not = set()
+        self.clique = []
 
         bar = IncrementalBar("Bron_Kerbosch", max=len(candidates))
         # extend 0 recurs level
