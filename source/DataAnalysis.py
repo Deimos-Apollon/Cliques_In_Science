@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 
 from source.Graph_Processing.GraphAlgos.BronKerbosch import BronKerboschManager
@@ -64,7 +65,5 @@ class DataAnalyser:
                     comp_color = filename.split('_')[2][0:-4]
                     coefs[comp_color].append(clique_coef)
 
-        with open(fr"{output_directory}/punkt_3", 'w') as file:
-            for comp_color, elems in coefs.items():
-                file.write(str(elems))
-                file.write("\n")
+        with open(fr"{output_directory}/punkt_3.json", 'w') as file:
+            json.dump(coefs, file, indent=4)
