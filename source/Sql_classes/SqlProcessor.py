@@ -108,8 +108,6 @@ class SqlProcessor:
                 full_to_someone = self.sql_manager.reader.get_citation_from_citations_via_authors(full_author_id, someone_id)
                 # проверяем, есть ли такая же запись только где автор с полным именем ссылается на того же
                 if full_to_someone:
-                    total_short_to_someone_refs = self.sql_manager.reader.get_total_refs_from_citation(short_to_someone)
-                    self.sql_manager.writer.increment_citation(full_to_someone, total_short_to_someone_refs)
                     self.sql_manager.writer.delete_citation(short_to_someone)
                 else:
                     self.sql_manager.writer.update_author_id_in_citation(short_to_someone, full_author_id)
@@ -130,8 +128,6 @@ class SqlProcessor:
                                                                                                   full_author_id)
                 # проверяем, есть ли такая же запись только где тот же автор ссылается на автора полного
                 if someone_to_full:
-                    total_someone_to_short_refs = self.sql_manager.reader.get_total_refs_from_citation(someone_to_short)
-                    self.sql_manager.writer.increment_citation(someone_to_full, total_someone_to_short_refs)
                     self.sql_manager.writer.delete_citation(someone_to_short)
                 else:
                     self.sql_manager.writer.update_src_id_in_citation(someone_to_short, full_author_id)
