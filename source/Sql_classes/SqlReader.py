@@ -51,6 +51,15 @@ class SqlReader:
             refs_doi = cursor.fetchall()
         return refs_doi
 
+    def get_work_is_referenced_count(self, work_doi):
+        get_query = fr'''
+                          SELECT Is_referenced_count FROM work WHERE DOI = "{work_doi}"
+                    '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            number_of_refs = cursor.fetchall()
+        return number_of_refs[0][0]
+
     def get_author_works(self, author_id):
         get_query = fr'''
                       SELECT Work_DOI FROM author_has_work WHERE Author_ID = {author_id}

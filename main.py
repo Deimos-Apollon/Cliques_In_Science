@@ -23,7 +23,8 @@ if __name__ == "__main__":
     max_size, color = data_analyser.find_largest_clique()
     print(max_size, color)
 
-    print(data_analyser.punkt_3("/media/deimos/Мои_файл_/PyCharmProjects/Alt_exam/data_analys_files/ant"))
+    directory = "/media/deimos/Мои_файл_/PyCharmProjects/Alt_exam/data_analys_files/ant"
+    print(data_analyser.punkt_5_6(directory))
 
     # sql_processor.merge_authors()
     #sql_processor.citations_to_graph_table()

@@ -67,3 +67,24 @@ class DataAnalyser:
 
         with open(fr"{output_directory}/punkt_3.json", 'w') as file:
             json.dump(coefs, file, indent=4)
+
+    def punkt_5_6(self, output_directory):
+        coefs = defaultdict(list)
+        for filename in os.listdir(self.directory):
+            with open(fr"{self.directory}/{filename}", 'r') as file:
+                for line in file.readlines():
+                    clique_authors = list(map(int, (line.strip('{').strip('}\n')).split(',')))
+                    clique_works_refs = {}
+                    for author in clique_authors:
+                        author_works = self.sql_manager.reader.get_author_works(author)
+                        for work in author_works:
+                            work = work[0]
+                            if work not in clique_works_refs:
+                                clique_works_refs[work] = self.sql_manager.reader.get_work_is_referenced_count(work)
+
+                    clique_coef = sum(clique_works_refs.values()) / len(clique_works_refs.items())
+                    comp_color = filename.split('_')[2][0:-4]
+                    coefs[comp_color].append(clique_coef)
+
+        with open(fr"{output_directory}/punkt_5_6.json", 'w') as file:
+            json.dump(coefs, file, indent=4)
