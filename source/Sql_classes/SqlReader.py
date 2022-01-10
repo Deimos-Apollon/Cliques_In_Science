@@ -60,6 +60,15 @@ class SqlReader:
             number_of_refs = cursor.fetchall()
         return number_of_refs[0][0]
 
+    def get_work_is_referenced_count_in_db(self, work_doi):
+        get_query = fr'''
+                            SELECT count(*) FROM work_cites_work WHERE Src_DOI = "{work_doi}"
+                      '''
+        with self.connection.cursor() as cursor:
+            cursor.execute(get_query)
+            number_of_refs = cursor.fetchall()
+        return number_of_refs[0][0]
+
     def get_author_works(self, author_id):
         get_query = fr'''
                       SELECT Work_DOI FROM author_has_work WHERE Author_ID = {author_id}
@@ -169,8 +178,20 @@ class SqlReader:
             entry = cursor.fetchall()
         return entry[0] if entry else None
 
+    def check_if_coauthors(self, author_id, src_id):
+        author_works = self.get_author_works(author_id)
+        for work in author_works:
+            work = work[0]
+            work_authors = self.get_authors_of_work(work)
+            for author in work_authors:
+                author = author[0]
+                if author == src_id:
+                    return True
+        return False
+
     def execute_get_query(self, query):
         with self.connection.cursor() as cursor:
             cursor.execute(query)
             entry = cursor.fetchall()
         return entry if entry else None
+

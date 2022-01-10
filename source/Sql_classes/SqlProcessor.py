@@ -33,7 +33,7 @@ class SqlProcessor:
             short_author_ids_with_short_names = self.sql_manager.reader.get_authors_with_short_names()
             bar = IncrementalBar("authors_merging", max=len(short_author_ids_with_short_names))
             bar.start()
-            for short_author_id in short_author_ids_with_short_names[20000:]:
+            for short_author_id in short_author_ids_with_short_names:
                 bar.next()
                 short_author_id = short_author_id[0] # распаковываем тапл
                 try:

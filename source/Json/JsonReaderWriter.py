@@ -24,7 +24,7 @@ class JsonReaderWriter:
 
         start = time.time()
         bar = IncrementalBar(f"Processing input files", max=len(self.file_range))
-        for  input_path in self.src_file_names:
+        for input_path in self.src_file_names:
             with open(input_path, 'r') as file:
 
                 data = json.load(file)['items']
@@ -56,7 +56,7 @@ class JsonReaderWriter:
 
     def __is_valid__(self, elem):
         if not elem.get("subject") \
-                or "General Medicine" not in elem["subject"]\
+                or "Mechanical Engineering" not in elem["subject"]\
                 or elem.get("DOI") is None \
                 or not elem.get("author") \
                 or elem.get("references-count") is None \

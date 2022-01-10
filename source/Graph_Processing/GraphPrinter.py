@@ -12,7 +12,7 @@ class GraphPrinter:
         edges = self.sql_graph_manager.graph_reader.get_edges()
         bar = IncrementalBar("SavingGraph", max=len(edges))
         bar.start()
-        if len(edges) > 10000:
+        if len(edges) > 20000:
             print('ERR: too big graph!')
             return
         edges = list(edges)
