@@ -3,6 +3,9 @@ from collections import Counter
 from threading import Thread
 from time import time, process_time
 
+import graphviz
+from progress.bar import IncrementalBar
+
 from source.DataAnalysis import DataAnalyser
 from source.Graph_Processing.GraphAlgos.BronKerbosch import BronKerboschManager
 from source.Graph_Processing.GraphAlgos.FindComponents import ComponentsFinder
@@ -14,6 +17,28 @@ from source.Json.JsonReaderWriter import JsonReaderWriter
 from source.Json.JsonAnalyser import JsonAnalyser
 from source.Sql_classes.SqlManager import SqlManager
 from source.Sql_classes.SqlProcessor import SqlProcessor
+
+def find_mean(directory):
+    internal_mean, external_mean = 0, 0
+    values_sum, values_num = 0, 0
+    with open(f"{directory}\punkt_3.json") as file:
+        items = json.load(file)
+        for comp in items.values():
+            for value in comp:
+                values_sum += value
+                values_num += 1
+    internal_mean = values_sum / values_num
+
+    values_sum, values_num = 0, 0
+    with open(f"{directory}\punkt_5_6.json") as file:
+        items = json.load(file)
+        for comp in items.values():
+            for value in comp:
+                values_sum += value
+                values_num += 1
+    external_mean = values_sum / values_num
+    return internal_mean, external_mean
+
 
 if __name__ == "__main__":
 

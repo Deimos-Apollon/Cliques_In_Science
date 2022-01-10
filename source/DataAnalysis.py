@@ -119,7 +119,9 @@ class DataAnalyser:
         max_coef, max_coef_comp_color, max_coef_clique_row = 0, 0, 0
         for filename in os.listdir(self.directory):
             with open(fr"{self.directory}/{filename}", 'r') as file:
+                clique_row = 0
                 for line in file.readlines():
+                    clique_row += 1
                     clique_authors = list(map(int, (line.strip('{').strip('}\n')).split(',')))
                     clique_works_refs = {}
                     internal_links_num = self.count_internal_links_works(clique_authors)
