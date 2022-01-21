@@ -7,12 +7,12 @@ from progress.bar import IncrementalBar
 
 
 class JsonReaderWriter:
-    def __init__(self, src_file_names, file_to_write_prefix, min_vacant_json_file_number, left_border, right_border):
+    def __init__(self, src_file_names, file_to_write_prefix, subj_name):
         self.__max_entry__ = 5000
-        self.__current_json_file_number = min_vacant_json_file_number
-        self.file_range = range(left_border, right_border)
+        self.__current_json_file_number = 0
         self.src_file_names = src_file_names
         self.file_to_write_prefix = file_to_write_prefix
+        self.subj = subj_name
 
     def proceed(self):
         compressed_data = {'items': []}
@@ -56,7 +56,7 @@ class JsonReaderWriter:
 
     def __is_valid__(self, elem):
         if not elem.get("subject") \
-                or "Mechanical Engineering" not in elem["subject"]\
+                or self.subj not in elem["subject"]\
                 or elem.get("DOI") is None \
                 or not elem.get("author") \
                 or elem.get("references-count") is None \

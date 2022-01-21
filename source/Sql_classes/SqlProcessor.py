@@ -8,17 +8,15 @@ class SqlProcessor:
     def __init__(self):
         self.sql_manager = SqlManager()
 
-    def citations_to_graph_table(self):
-
-        start = time.time()
-
-        citations_num = self.sql_manager.reader.get_number_citations()
+    @time_method_decorator
+    def fill_graph_table(self):
+        citations_num = self.sql_manager.reader.get_citations_number()
         bar = IncrementalBar(max=citations_num)
         for i in range(1, citations_num + 1):
-            try_get_citation_in_graph = self.sql_manager.reader.get_authors_from_citations_via_id(i)
+            try_get_citation_in_graph = self.sql_manager.reader.get_authors_via_citation(i)
             if try_get_citation_in_graph:
                 author, src = try_get_citation_in_graph
-                co_citation_id = self.sql_manager.reader.get_citation_from_citations_via_authors(src, author)
+                co_citation_id = self.sql_manager.reader.get_citation_via_authors(src, author)
                 if co_citation_id:
                     self.sql_manager.writer.add_edge_to_graph(i)
                     if co_citation_id != i:
@@ -95,39 +93,44 @@ class SqlProcessor:
 
     def __merge_citations_short_to_someone(self, short_author_id, full_author_id):
         # берем айди всех цитат, где источник цитаты - автор короткий
-        ids_short_to_someone = self.sql_manager.reader.get_all_citation_from_citations_via_author_id(
+        ids_short_to_someone = self.sql_manager.reader.get_all_citation_via_author(
             short_author_id)
         if not ids_short_to_someone:
             return
         for short_to_someone in ids_short_to_someone:
             # получаем из цитаты айди автора короткого и айди на кого он ссылается
             short_to_someone = short_to_someone[0]   # распаковываем тапл
-            someone_id = self.sql_manager.reader.get_authors_from_citations_via_id(short_to_someone)
+            someone_id = self.sql_manager.reader.get_authors_via_citation(short_to_someone)
             if someone_id:
                 someone_id = someone_id[1]  # берем только на кого ссылается, кто ссылается мы уже знаем
-                full_to_someone = self.sql_manager.reader.get_citation_from_citations_via_authors(full_author_id, someone_id)
+                full_to_someone = self.sql_manager.reader.get_citation_via_authors(full_author_id, someone_id)
                 # проверяем, есть ли такая же запись только где автор с полным именем ссылается на того же
                 if full_to_someone:
                     self.sql_manager.writer.delete_citation(short_to_someone)
                 else:
-                    self.sql_manager.writer.update_author_id_in_citation(short_to_someone, full_author_id)
+                    self.sql_manager.writer.update_citation_author(short_to_someone, full_author_id)
 
     def __merge_citations_someone_to_short(self, short_author_id, full_author_id):
         # берем айди всех цитат, где ссылаются на автора короткого
-        ids_someone_to_short = self.sql_manager.reader.get_all_citation_from_citations_via_src_id(
+        ids_someone_to_short = self.sql_manager.reader.get_all_citation_via_src(
             short_author_id)
         if not ids_someone_to_short:
             return
         for someone_to_short in ids_someone_to_short:
             # получаем из цитаты айди кто ссылается и айди автора короткого
             someone_to_short = someone_to_short[0]  # распаковываем тапл
-            someone_id = self.sql_manager.reader.get_authors_from_citations_via_id(someone_to_short)
+            someone_id = self.sql_manager.reader.get_authors_via_citation(someone_to_short)
             if someone_id:
                 someone_id = someone_id[0]  # берем только кто ссылается, на кого ссылается мы уже знаем
-                someone_to_full = self.sql_manager.reader.get_citation_from_citations_via_authors(someone_id,
-                                                                                                  full_author_id)
+                someone_to_full = self.sql_manager.reader.get_citation_via_authors(someone_id,
+                                                                                   full_author_id)
                 # проверяем, есть ли такая же запись только где тот же автор ссылается на автора полного
                 if someone_to_full:
                     self.sql_manager.writer.delete_citation(someone_to_short)
                 else:
-                    self.sql_manager.writer.update_src_id_in_citation(someone_to_short, full_author_id)
+                    self.sql_manager.writer.update_citation_src(someone_to_short, full_author_id)
+
+    @time_method_decorator
+    def find_comps(self):
+        finder = ComponentsFinder()
+        finder.find_comps()

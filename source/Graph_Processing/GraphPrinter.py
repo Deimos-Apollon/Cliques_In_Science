@@ -1,7 +1,6 @@
 import graphviz
 from progress.bar import IncrementalBar
 
-from source.Graph_Processing.SqlGraphManager import SqlGraphManager
 
 class GraphPrinter:
     def __init__(self):

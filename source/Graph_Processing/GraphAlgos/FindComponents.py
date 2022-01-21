@@ -1,9 +1,10 @@
 from progress.bar import IncrementalBar
 
-from source.Graph_Processing.SqlGraphManager import SqlGraphManager
 from collections import defaultdict
 
+from source.Graph_Processing.SqlGraphReader import SqlGraphReader
 from source.Sql_classes.SqlManager import SqlManager
+from source.time_decorator import time_method_decorator
 
 
 class ComponentsFinder:

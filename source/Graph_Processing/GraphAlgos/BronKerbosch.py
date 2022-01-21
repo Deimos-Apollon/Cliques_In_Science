@@ -2,26 +2,27 @@ import sys
 
 from progress.bar import IncrementalBar
 
-from source.Graph_Processing.SqlGraphManager import SqlGraphManager
+from source.Graph_Processing.SqlGraphReader import SqlGraphReader
+from source.time_decorator import time_method_decorator
 
 
 class BronKerboschManager:
     def __init__(self):
-        self.sql_graph_manager = SqlGraphManager()
-        self.incidence_lists = []
+        self.graph_reader = SqlGraphReader()
+        self.incidence_lists = {}
         self.candidates = set()
         self.compsub = set()
         self.vertices_not = set()
         self.clique = []
 
-    def bron_kerbosh(self, component_color):
-        self.incidence_lists = self.sql_graph_manager.\
-            graph_reader.get_component_incidence_lists(component_color)
+    @time_method_decorator
+    def bron_kerbosch(self, component_color):
+        self.incidence_lists = self.graph_reader.get_component_incidence_lists(component_color)
         return self.__bron_kerbosch()
 
-    def bron_kerbosh_coauthors(self, component_color):
-        self.incidence_lists = self.sql_graph_manager.\
-            graph_reader.get_component_incidence_lists_coauthors(component_color)
+    @time_method_decorator
+    def bron_kerbosch_coauthors(self, component_color):
+        self.incidence_lists = self.graph_reader.get_component_incidence_lists_coauthors(component_color)
         return self.__bron_kerbosch()
 
     def __bron_kerbosch(self):

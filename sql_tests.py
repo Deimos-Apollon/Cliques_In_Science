@@ -15,19 +15,19 @@ def test():
                 if ORCID:
                     # read author
                     ORCID = ORCID.split('/')[-1]
-                    sqlrw.add_new_author(ORCID)
+                    sqlrw.add_author(ORCID)
 
         # read work's DOI
         DOI = work.get('DOI')
         if DOI:
             year = work.get('created')['date-parts'][0][0]
-            sqlrw.add_new_work(DOI, year if year else 0)
+            sqlrw.add_work(DOI, year if year else 0)
 
     # read author_citates_author
-    sqlrw.add_new_author('1')
-    sqlrw.add_new_author('2')
-    sqlrw.add_new_author('3')
-    sqlrw.add_new_author('4')
+    sqlrw.add_author('1')
+    sqlrw.add_author('2')
+    sqlrw.add_author('3')
+    sqlrw.add_author('4')
     author_sources = {'1': ['1', '2', '3', '4'],
                       '2': ['1', '3', '4'],
                       '3': ['1', '2'],
@@ -40,13 +40,13 @@ def test():
     # read author_has_work
     DOI = ['doi_1', 'doi_2', 'doi_3']
     for doi in DOI:
-        sqlrw.add_new_work(doi, 2002)
-    sqlrw.add_new_author_has_work('1', 'doi_1')
-    sqlrw.add_new_author_has_work('3', 'doi_3')
-    sqlrw.add_new_author_has_work('1', 'doi_2')
-    sqlrw.add_new_author_has_work('1', 'doi_2992')
-    sqlrw.add_new_author_has_work('2', 'doi_1')
-    sqlrw.add_new_author_has_work('2', 'doi_2')
+        sqlrw.add_work(doi, 2002)
+    sqlrw.add_author_has_work('1', 'doi_1')
+    sqlrw.add_author_has_work('3', 'doi_3')
+    sqlrw.add_author_has_work('1', 'doi_2')
+    sqlrw.add_author_has_work('1', 'doi_2992')
+    sqlrw.add_author_has_work('2', 'doi_1')
+    sqlrw.add_author_has_work('2', 'doi_2')
 
     # read work_ref
     sqlrw.add_new_work_ref(DOI[0], DOI[1])

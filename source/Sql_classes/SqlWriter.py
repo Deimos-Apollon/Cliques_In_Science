@@ -134,7 +134,7 @@ class SqlWriter:
             cursor.execute(delete_query)
         self.connection.commit()
 
-    def update_author_id_in_citation(self, citation_id, new_author_id):
+    def update_citation_author(self, citation_id, new_author_id):
         update_query = fr'''
                           UPDATE author_cites_author
                           SET author_id = {new_author_id} WHERE ID = {citation_id}
@@ -143,7 +143,7 @@ class SqlWriter:
             cursor.execute(update_query)
         self.connection.commit()
 
-    def update_src_id_in_citation(self, citation_id, new_src_id):
+    def update_citation_src(self, citation_id, new_src_id):
         update_query = fr'''
                          UPDATE author_cites_author
                          SET Src_id = {new_src_id} WHERE ID = {citation_id}
