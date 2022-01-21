@@ -1,9 +1,8 @@
 import json
-import gzip
 import time
-import re
 
 from progress.bar import IncrementalBar
+from source.time_decorator import time_method_decorator
 
 
 class JsonReaderWriter:
@@ -20,34 +19,31 @@ class JsonReaderWriter:
         current_entry = 0
         filename = self.file_to_write_prefix + str(self.__current_json_file_number) + ".json"
 
-        out_file = open(filename, 'w')
+        with open(filename, 'w') as out_file:
+            start = time.time()
+            bar = IncrementalBar(f"Processing input files", max=len(self.src_file_names))
+            for input_path in self.src_file_names:
+                with open(input_path, 'r') as file:
 
-        start = time.time()
-        bar = IncrementalBar(f"Processing input files", max=len(self.file_range))
-        for input_path in self.src_file_names:
-            with open(input_path, 'r') as file:
+                    data = json.load(file)['items']
 
-                data = json.load(file)['items']
+                    for work in data:
+                        if self.__is_valid__(work):
+                            compressed_data['items'].append(self.__work_json_repr__(work))
+                            current_entry += 1
+                            if current_entry == self.__max_entry__:
+                                current_entry = 0
+                                json.dump(compressed_data, out_file)
+                                compressed_data = {'items': []}
+                                out_file.close()
+                                out_file = open(self.__get_new_file_name__(), 'w')
+                bar.next()
 
-                for work in data:
-                    if self.__is_valid__(work):
-                        compressed_data['items'].append(self.__work_json_repr__(work))
-                        current_entry += 1
-                        if current_entry == self.__max_entry__:
-                            current_entry = 0
-                            json.dump(compressed_data, out_file)
-                            compressed_data = {'items': []}
-                            out_file.close()
-                            out_file = open(self.__get_new_file_name__(), 'w')
-            bar.next()
-
-        print("\nСейчас будет мусор: ", end=' ')
-        bar.finish()
-        print()
-        if compressed_data:
-            json.dump(compressed_data, out_file)
-        compressed_data = {'items': []}
-        out_file.close()
+            print("\nСейчас будет мусор: ", end=' ')
+            bar.finish()
+            print()
+            if compressed_data:
+                json.dump(compressed_data, out_file)
         print(f"LOG: JsonReader.proceed total time in minutes: {(time.time() - start) / 60}\n")
 
     def __get_new_file_name__(self):

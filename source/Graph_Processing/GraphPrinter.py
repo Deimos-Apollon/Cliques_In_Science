@@ -1,14 +1,16 @@
 import graphviz
 from progress.bar import IncrementalBar
 
+from source.Graph_Processing.SqlGraphReader import SqlGraphReader
+
 
 class GraphPrinter:
     def __init__(self):
-        self.sql_graph_manager = SqlGraphManager()
+        self.graph_reader = SqlGraphReader()
 
     def save_graph(self):
         g = graphviz.Graph('G', filename='test_graph.gv')
-        edges = self.sql_graph_manager.graph_reader.get_edges()
+        edges = self.graph_reader.get_edges()
         bar = IncrementalBar("SavingGraph", max=len(edges))
         bar.start()
         if len(edges) > 20000:
@@ -23,7 +25,7 @@ class GraphPrinter:
 
     def save_component(self, component_color):
         g = graphviz.Digraph('G', filename=f'component_{component_color}.gv')
-        edges = self.sql_graph_manager.graph_reader.get_unique_component_edges(component_color)
+        edges = self.graph_reader.get_unique_component_edges(component_color)
         bar = IncrementalBar("SavingGraph", max=len(edges))
         bar.start()
 

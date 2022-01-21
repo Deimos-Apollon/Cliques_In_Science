@@ -7,18 +7,18 @@ from source.time_decorator import time_method_decorator
 
 
 class JsonToSqlWriter:
+    @time_method_decorator
     def data_read_first_phase_from_files(self, filenames, file_number_left):
-
         for file_number, filename in enumerate(filenames, start=file_number_left):
             with open(filename) as file:
                 samples = json.load(file)['items']
                 self.__data_read_first_phase(samples, file_number)
 
+    @time_method_decorator
     def __data_read_first_phase(self, samples, file_number):
         sql_manager = SqlManager()
 
         bar1 = IncrementalBar(f"Reading first phase file #{file_number}", max=len(samples))
-        start = time.time()
 
         # data reading first phase: works, authors
         for work in samples:
@@ -43,22 +43,22 @@ class JsonToSqlWriter:
                         else:
                             print(f"Error: file {file_number}, name: {given_name}, surname: {family_name}, "
                                   f"error msg: no author id via name and family")
+
                 except mysql.connector.Error as err:
                     print(f"Error: file {file_number}, name: {given_name}, surname: {family_name}, "
                           f"error msg: {err.msg}")
             bar1.next()
-
         bar1.finish()
         print()
-        first_phase_time = time.time() - start
-        print(f"LOG: JsonToSqlWriter first phase time in minutes: {first_phase_time / 60}")
 
+    @time_method_decorator
     def data_read_second_phase_from_files(self, filenames, file_number_left):
         for file_number, filename in enumerate(filenames, start=file_number_left):
             with open(filename) as file:
                 samples = json.load(file)['items']
                 self.__data_read_second_phase(samples, file_number)
 
+    @time_method_decorator
     def __data_read_second_phase(self, samples, file_number):
         sql_manager = SqlManager()
 
@@ -86,6 +86,7 @@ class JsonToSqlWriter:
             except mysql.connector.Error as err:
                 print(f"Error: file {file_number}, work_doi: {work_doi} "
                       f"error msg: {err.msg}")
+
             bar1.next()
         bar1.finish()
         print()

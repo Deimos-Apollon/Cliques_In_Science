@@ -1,7 +1,3 @@
-from source.config import SQL_USER, SQL_PASS
-from mysql.connector import connect, Error, ProgrammingError
-
-
 class SqlReader:
     def __init__(self, connection):
         self.connection = connection
@@ -98,11 +94,9 @@ class SqlReader:
 
     def get_author_name(self, author_id):
         get_query = fr'''
-                        SELECT given_name, family_name FROM author WHERE ID = {author_id}
-                    '''
-        with self.connection.cursor() as cursor:
-            cursor.execute(get_query)
-            entry = cursor.fetchall()
+                SELECT given_name, family_name FROM author WHERE ID = {author_id}
+        '''
+        entry = self.execute_get_query(get_query)
         return entry[0] if entry else None
 
     def check_if_coauthors(self, author_id, src_id):

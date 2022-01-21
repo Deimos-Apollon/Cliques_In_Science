@@ -9,13 +9,15 @@ from source.time_decorator import time_method_decorator
 
 class ComponentsFinder:
     def __init__(self):
-        self.sql_graph_manager = SqlGraphManager()
+        self.sql_manager = SqlManager()
+        self.graph_reader = SqlGraphReader()
 
-        self.incidence_lists = self.sql_graph_manager.graph_reader.get_incidence_lists()
+        self.incidence_lists = self.graph_reader.get_incidence_lists()
         self.vertices_not_visited = set(self.incidence_lists.keys())
         self.comps = defaultdict(set)
         self.vertices_not_visited_num = len(self.vertices_not_visited)
 
+    @time_method_decorator
     def find_comps(self):
         current_color = 1
 
@@ -37,9 +39,9 @@ class ComponentsFinder:
                 if child in self.vertices_not_visited:
                     co_id = self.__find_co_edge(vertex, child)
                     if co_id:
-                        self.sql_graph_manager.graph_writer.add_edge_in_component(current_color, edge_id)
+                        self.sql_manager.writer.add_edge_in_component(current_color, edge_id)
                         if co_id != edge_id:
-                            self.sql_graph_manager.graph_writer.add_edge_in_component(current_color, co_id)
+                            self.sql_manager.writer.add_edge_in_component(current_color, co_id)
                     else:
                         print("ERROR: нет co_id")
                     if child not in queue:

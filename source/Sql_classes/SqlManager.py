@@ -3,6 +3,7 @@ from source.Sql_classes.SqlWriter import SqlWriter
 from source.config import SQL_USER, SQL_PASS
 from mysql.connector import connect, Error
 
+
 class SqlManager:
     def __init__(self):
         self.connection = None

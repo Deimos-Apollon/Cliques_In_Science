@@ -1,7 +1,8 @@
 from source.Sql_classes.SqlManager import SqlManager
 from mysql.connector import Error as mysql_Error
 from progress.bar import IncrementalBar
-import time
+from source.Graph_Processing.GraphAlgos.FindComponents import ComponentsFinder
+from source.time_decorator import time_method_decorator
 
 
 class SqlProcessor:
@@ -22,10 +23,9 @@ class SqlProcessor:
                     if co_citation_id != i:
                         self.sql_manager.writer.add_edge_to_graph(co_citation_id)
             bar.next()
-
         bar.finish()
-        print("Edges adding time in minutes:", (time.time() - start) / 60)
 
+    @time_method_decorator
     def merge_authors(self):
         with open("merge_authors_logs.txt", 'w') as file:
             short_author_ids_with_short_names = self.sql_manager.reader.get_authors_with_short_names()

@@ -131,8 +131,7 @@ class DataAnalyser:
                         for work in author_works:
                             work = work[0]
                             if work not in clique_works_refs:
-                                clique_works_refs[work] = max(self.sql_manager.reader.get_work_is_referenced_count(work),
-                                                              self.sql_manager.reader.get_work_is_referenced_count_in_db(work))
+                                clique_works_refs[work] = self.sql_manager.reader.get_work_is_referenced_count(work)
 
                     clique_coef = (sum(clique_works_refs.values()) - internal_links_num) / len(clique_works_refs.keys())
                     comp_color = filename.split('_')[2][0:-4]
