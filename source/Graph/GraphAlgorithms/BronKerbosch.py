@@ -1,8 +1,5 @@
-import sys
-
-from progress.bar import IncrementalBar
-
-from source.Graph_Processing.SqlGraphReader import SqlGraphReader
+from tqdm.autonotebook import tqdm
+from source.SQL_interaction.SqlGraphReader import SqlGraphReader
 from source.time_decorator import time_method_decorator
 
 
@@ -31,20 +28,20 @@ class BronKerboschManager:
         else:
             return None
         self.compsub = set()
-        vertices_not = set()
+        vert_not = set()
         self.clique = []
 
-        bar = IncrementalBar("Bron_Kerbosch", max=len(candidates))
+        bar = tqdm(total=len(candidates))
         # extend 0 recurs level
-        bar.start()
-        while candidates and self.__check_is_adjacent_with_all_candidates(vertices_not, candidates):
-            bar.next()
+
+        while candidates and self.__check_is_adjacent_with_all_candidates(vert_not, candidates):
+            bar.update()
             # 1
             vertex = candidates.pop()
             candidates.add(vertex)
             self.compsub.add(vertex)
             # 2
-            new_candidates, new_vertices_not = self.__get_new_candidates_and_vertices_not(candidates, vertices_not, vertex)
+            new_candidates, new_vertices_not = self.__get_new_candidates_and_vertices_not(candidates, vert_not, vertex)
             # 3
             if not (new_candidates or new_vertices_not):
                 # 4
@@ -55,19 +52,19 @@ class BronKerboschManager:
             # 6
             self.compsub.remove(vertex)
             candidates.remove(vertex)
-            vertices_not.add(vertex)
+            vert_not.add(vertex)
 
-        bar.finish()
+        bar.close()
         return self.clique
 
-    def __extend(self, candidates, vertices_not):
-        while candidates and self.__check_is_adjacent_with_all_candidates(vertices_not, candidates):
+    def __extend(self, candidates, vert_not):
+        while candidates and self.__check_is_adjacent_with_all_candidates(vert_not, candidates):
             # 1
             vertex = candidates.pop()
             candidates.add(vertex)
             self.compsub.add(vertex)
             # 2
-            new_candidates, new_vertices_not = self.__get_new_candidates_and_vertices_not(candidates, vertices_not, vertex)
+            new_candidates, new_vertices_not = self.__get_new_candidates_and_vertices_not(candidates, vert_not, vertex)
             # 3
             if not (new_candidates or new_vertices_not):
                 # 4
@@ -78,7 +75,7 @@ class BronKerboschManager:
             # 6
             self.compsub.remove(vertex)
             candidates.remove(vertex)
-            vertices_not.add(vertex)
+            vert_not.add(vertex)
 
     def __check_is_adjacent_with_all_candidates(self, vertices_not, candidates):
         for vertex_not in vertices_not:

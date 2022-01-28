@@ -1,23 +1,26 @@
 import json
 from collections import defaultdict
-from progress.bar import IncrementalBar
-from source.Graph_Processing.GraphAlgos.BronKerbosch import BronKerboschManager
-from source.Sql_classes.SqlManager import SqlManager
-from source.Sql_classes.SqlProcessor import SqlProcessor
-
+from tqdm.autonotebook import tqdm
+from source.Graph.GraphAlgorithms.BronKerbosch import BronKerboschManager
+from source.SQL_interaction.Create_connection import create_connection
 import os
+
+from source.SQL_interaction.SqlReader import SqlReader
+from source.SQL_interaction.SqlWriter import SqlWriter
 
 
 class DataAnalyser:
     def __init__(self, cliques_directory):
-        self.sql_manager = SqlManager()
+        connection = create_connection()
+        self.sql_writer = SqlWriter(connection)
+        self.sql_reader = SqlReader(connection)
         self.directory = cliques_directory
 
     def write_all_cliques(self):
         get_query = fr'''
                         SELECT component_color FROM component ORDER BY component_color DESC LIMIT 1
                    '''
-        component_last_color = self.sql_manager.reader.execute_get_query(get_query)[0][0]
+        component_last_color = self.sql_reader.execute_get_query(get_query)[0][0]
         bron_kerbosch = BronKerboschManager()
         for comp_color in range(1, component_last_color + 1):
             cliques = bron_kerbosch.bron_kerbosch(comp_color)
@@ -31,7 +34,7 @@ class DataAnalyser:
         get_query = fr'''
                         SELECT component_color FROM component ORDER BY component_color DESC LIMIT 1
                    '''
-        component_last_color = self.sql_manager.reader.execute_get_query(get_query)[0][0]
+        component_last_color = self.sql_reader.execute_get_query(get_query)[0][0]
         bron_kerbosch = BronKerboschManager()
         for comp_color in range(1, component_last_color + 1):
             cliques = bron_kerbosch.bron_kerbosch_coauthors(comp_color)
@@ -63,13 +66,13 @@ class DataAnalyser:
     def count_internal_links_authors(self, clique_authors):
         total_refs = 0
         for author in clique_authors:
-            author_works = self.sql_manager.reader.get_author_works(author)
+            author_works = self.sql_reader.get_author_works(author)
             for work in author_works:
                 work = work[0]
-                src_works = self.sql_manager.reader.get_work_references(work)
+                src_works = self.sql_reader.get_work_references(work)
                 for src_work in src_works:
                     src_work = src_work[0]
-                    work_authors = self.sql_manager.reader.get_work_authors(src_work)
+                    work_authors = self.sql_reader.get_work_authors(src_work)
                     for work_author in work_authors:
                         work_author = work_author[0]
                         if work_author in clique_authors and work_author != author:
@@ -81,12 +84,12 @@ class DataAnalyser:
         clique_works = set()
 
         for author in clique_authors:
-            for author_works in self.sql_manager.reader.get_author_works(author):
+            for author_works in self.sql_reader.get_author_works(author):
                 for work in author_works:
                     clique_works.add(work.lower())
 
         for work in clique_works:
-            work_refs = self.sql_manager.reader.get_work_references(work)
+            work_refs = self.sql_reader.get_work_references(work)
             for work_ref in work_refs:
                 work_ref = work_ref[0].lower()
                 if work_ref in clique_works:
@@ -97,7 +100,7 @@ class DataAnalyser:
 
     def save_internal_citing_coef(self, output_directory):
         coefs = defaultdict(list)
-        bar = IncrementalBar(max=len(os.listdir(self.directory)))
+        bar = tqdm(total=len(os.listdir(self.directory)))
         for filename in os.listdir(self.directory):
             with open(fr"{self.directory}/{filename}", 'r') as file:
                 for line in file.readlines():
@@ -106,15 +109,15 @@ class DataAnalyser:
                     clique_coef = total_refs / len(clique_authors) ** 2
                     comp_color = filename.split('_')[2][0:-4]
                     coefs[comp_color].append(clique_coef)
-            bar.next()
-        bar.finish()
+            bar.update()
+        bar.close()
 
         with open(fr"{output_directory}/punkt_3.json", 'w') as file:
             json.dump(coefs, file, indent=4)
 
     def save_external_citing_coef(self, output_directory):
         coefs = defaultdict(list)
-        bar = IncrementalBar(max=len(os.listdir(self.directory)))
+        bar = tqdm(total=len(os.listdir(self.directory)))
         min_coef, min_coef_comp_color, min_coef_clique_row = 1000, 0, 0
         max_coef, max_coef_comp_color, max_coef_clique_row = 0, 0, 0
         for filename in os.listdir(self.directory):
@@ -127,11 +130,11 @@ class DataAnalyser:
                     internal_links_num = self.count_internal_links_works(clique_authors)
 
                     for author in clique_authors:
-                        author_works = self.sql_manager.reader.get_author_works(author)
+                        author_works = self.sql_reader.get_author_works(author)
                         for work in author_works:
                             work = work[0]
                             if work not in clique_works_refs:
-                                clique_works_refs[work] = self.sql_manager.reader.get_work_is_referenced_count(work)
+                                clique_works_refs[work] = self.sql_reader.get_work_is_referenced_count(work)
 
                     clique_coef = (sum(clique_works_refs.values()) - internal_links_num) / len(clique_works_refs.keys())
                     comp_color = filename.split('_')[2][0:-4]
@@ -144,8 +147,8 @@ class DataAnalyser:
                         max_coef = clique_coef
                         max_coef_comp_color = comp_color
                         max_coef_clique_row = clique_row
-            bar.next()
-        bar.finish()
+            bar.update()
+        bar.close()
 
         with open(fr"{output_directory}/punkt_5_6.json", 'w') as file:
             json.dump(coefs, file, indent=4)
@@ -161,9 +164,8 @@ class DataAnalyser:
             json.dump(items, file, indent=4)
 
     def find_mean(self, directory):
-        internal_mean, external_mean = 0, 0
         values_sum, values_num = 0, 0
-        with open(f"{directory}\punkt_3.json") as file:
+        with open(fr"{directory}\punkt_3.json") as file:
             items = json.load(file)
             for comp in items.values():
                 for value in comp:
@@ -172,7 +174,7 @@ class DataAnalyser:
         internal_mean = values_sum / values_num
 
         values_sum, values_num = 0, 0
-        with open(f"{directory}\punkt_5_6.json") as file:
+        with open(fr"{directory}\punkt_5_6.json") as file:
             items = json.load(file)
             for comp in items.values():
                 for value in comp:

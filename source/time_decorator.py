@@ -8,4 +8,3 @@ def time_method_decorator(function):
         print(f"LOG: {function.__repr__().split()[1]} total time in minutes: {(time() - start) / 60}\n")
         return return_value
     return wrapper
-

@@ -1,7 +1,7 @@
 import json
 from collections import Counter
-import time
-from progress.bar import IncrementalBar
+from tqdm.autonotebook import tqdm
+from source.time_decorator import time_method_decorator
 
 
 class JsonAnalyser:
@@ -17,9 +17,9 @@ class JsonAnalyser:
         self.last_file_number = last_file_number
         self.files_names = file_names
 
+    @time_method_decorator
     def proceed(self):
-        bar = IncrementalBar("JsonAnalyser proceed", max=self.last_file_number)
-        start = time.time()
+        bar = tqdm(total=self.last_file_number)
         for file_name in self.files_names:
             with open(file_name, "r") as file:
                 data = json.load(file)['items']
@@ -43,11 +43,8 @@ class JsonAnalyser:
                     year = work.get("year")
                     if year:
                         self.__year_distribution__[year] += 1
-            bar.next()
-        print("\nСейчас будет мусор: ", end=' ')
-        bar.finish()
-        print()
-        print(f"LOG: JsonReaderWriter.proceed total time in minutes: {(time.time() - start) / 60}\n")
+            bar.update()
+        bar.close()
 
     def save_results(self, main_info_file, all_subjects_file):
         year_distribution_repr = {i[0]: i[1] for i in sorted(self.__year_distribution__.items())}
@@ -64,8 +61,10 @@ class JsonAnalyser:
                            "Total works with ref_list": self.__works_with_refs_list__,
                            "Total works with is referenced by count": self.__works_with_is_referenced__,
                            "Mean number authors of works": self.__mean_authors_num / self.__works_count__,
-                           "Mean authors' number of works with ref list": self.__mean_authors_num / self.__works_with_refs_list__,
-                           "Mean refs' number of works with ref list": self.__mean_refs_num / self.__works_with_refs_list__,
+                           "Mean authors' number of works with ref list":
+                               self.__mean_authors_num / self.__works_with_refs_list__,
+                           "Mean refs' number of works with ref list":
+                               self.__mean_refs_num / self.__works_with_refs_list__,
                            "Year distribution": year_distribution_repr,
                            "Year mean authors distribution": mean_authors_distribution_repr,
                            "Top 100 subjects distribution": subjects_count_repr, }

@@ -6,8 +6,7 @@ class SqlReader:
         get_query = fr'''
                 SELECT ID FROM author WHERE given_name = ("{given}") AND family_name = ("{family}")
         '''
-        entry = self.execute_get_query(get_query)
-        return entry[0][0] if entry else None
+        return self.execute_get_query(get_query)
 
     def get_work_authors(self, doi):
         get_query = fr'''
@@ -25,8 +24,7 @@ class SqlReader:
         get_query = fr'''
                 SELECT count(*) FROM work_cites_work WHERE Src_DOI = "{work_doi}"
         '''
-        entry = self.execute_get_query(get_query)
-        return entry[0][0]
+        return self.execute_get_query(get_query)
 
     def get_author_works(self, author_id):
         get_query = fr'''
@@ -44,29 +42,25 @@ class SqlReader:
         get_query = fr'''
                 SELECT ID FROM author_cites_author ORDER BY ID DESC Limit 1
         '''
-        entry = self.execute_get_query(get_query)
-        return entry[0][0]
+        return self.execute_get_query(get_query)
 
     def get_citation_id_from_graph(self, entry_id):
         get_query = fr'''
-                SELECT author_Citates_author_ID from graph where ID = {entry_id}
+                SELECT Edge_ID from graph where ID = {entry_id}
         '''
-        entry = self.execute_get_query(get_query)
-        return entry[0][0] if entry else None
+        return self.execute_get_query(get_query)
 
     def get_authors_via_citation(self, entry_id):
         get_query = fr'''
                 SELECT author_ID, Src_ID FROM author_cites_author WHERE ID = {entry_id}
         '''
-        entry = self.execute_get_query(get_query)
-        return entry[0] if entry else None
+        return self.execute_get_query(get_query)
 
     def get_citation_via_authors(self, author_id, src_id):
         get_query = fr'''
                 SELECT ID FROM author_cites_author WHERE author_ID = {author_id} and Src_ID = {src_id}
         '''
-        entry = self.execute_get_query(get_query)
-        return entry[0][0] if entry else None
+        return self.execute_get_query(get_query)
 
     def get_all_citation_via_author(self, author_id):
         get_query = fr'''
@@ -86,9 +80,15 @@ class SqlReader:
         '''
         return self.execute_get_query(get_query)
 
-    def get_src_authors(self, author_id):
+    def get_referenced_authors(self, author_id):
         get_query = fr'''
                 SELECT src_id FROM author_cites_author WHERE author_ID = {author_id}
+        '''
+        return self.execute_get_query(get_query)
+
+    def get_referencing_authors(self, src_id):
+        get_query = fr'''
+                SELECT author_id FROM author_cites_author WHERE src_ID = {src_id}
         '''
         return self.execute_get_query(get_query)
 
@@ -96,8 +96,7 @@ class SqlReader:
         get_query = fr'''
                 SELECT given_name, family_name FROM author WHERE ID = {author_id}
         '''
-        entry = self.execute_get_query(get_query)
-        return entry[0] if entry else None
+        return self.execute_get_query(get_query)
 
     def check_if_coauthors(self, author_id, src_id):
         author_works = self.get_author_works(author_id)
@@ -113,6 +112,4 @@ class SqlReader:
     def execute_get_query(self, query):
         with self.connection.cursor() as cursor:
             cursor.execute(query)
-            entry = cursor.fetchall()
-        return entry if entry else None
-
+            return cursor.fetchall()
