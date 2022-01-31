@@ -78,6 +78,7 @@ class SqlWriter:
 
     def add_edge_in_component(self, component_color, edge_id):
         add_query = fr'''
-                INSERT IGNORE INTO component_has_edges (Component_color, Graph_edge_ID) VALUES ({component_color}, {edge_id})
+                INSERT IGNORE INTO component_has_edges (Component_ID, Graph_edge_ID)
+                VALUES ({component_color}, {edge_id})
         '''
         self.execute_query(add_query)

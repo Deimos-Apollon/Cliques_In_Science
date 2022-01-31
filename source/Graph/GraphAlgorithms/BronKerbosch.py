@@ -12,12 +12,10 @@ class BronKerboschManager:
         self.vertices_not = set()
         self.clique = []
 
-    @time_method_decorator
     def bron_kerbosch(self, component_color):
         self.incidence_lists = self.graph_reader.get_component_incidence_lists(component_color)
         return self.__bron_kerbosch()
 
-    @time_method_decorator
     def bron_kerbosch_coauthors(self, component_color):
         self.incidence_lists = self.graph_reader.get_component_incidence_lists_coauthors(component_color)
         return self.__bron_kerbosch()
@@ -26,16 +24,14 @@ class BronKerboschManager:
         if self.incidence_lists:
             candidates = set(self.incidence_lists.keys())
         else:
-            return None
+            return []
         self.compsub = set()
         vert_not = set()
         self.clique = []
 
-        bar = tqdm(total=len(candidates))
         # extend 0 recurs level
 
         while candidates and self.__check_is_adjacent_with_all_candidates(vert_not, candidates):
-            bar.update()
             # 1
             vertex = candidates.pop()
             candidates.add(vertex)
@@ -54,7 +50,6 @@ class BronKerboschManager:
             candidates.remove(vertex)
             vert_not.add(vertex)
 
-        bar.close()
         return self.clique
 
     def __extend(self, candidates, vert_not):

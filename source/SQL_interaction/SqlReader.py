@@ -10,7 +10,7 @@ class SqlReader:
 
     def get_work_authors(self, doi):
         get_query = fr'''
-                SELECT author_ID FROM author_has_work WHERE work_DOI = '{doi}'
+                SELECT author_ID FROM author_has_work WHERE work_DOI = "{doi}"
         '''
         return self.execute_get_query(get_query)
 
@@ -99,6 +99,8 @@ class SqlReader:
         return self.execute_get_query(get_query)
 
     def check_if_coauthors(self, author_id, src_id):
+        if author_id == src_id:
+            return True
         author_works = self.get_author_works(author_id)
         for work in author_works:
             work = work[0]
