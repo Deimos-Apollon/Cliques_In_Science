@@ -81,7 +81,7 @@ class JsonToSqlWriter:
             left_border = (div + 1) * mod + div * i
             right_border = (div + 1) * mod + div * (i + 1)
             thread_filenames = filenames[left_border:right_border]
-            threads.append(Thread(target=target_phase, args=(thread_filenames,)))
+            threads.append(Thread(target=self.__launch_phase_on_files, args=(thread_filenames, target_phase)))
         return threads
 
     @staticmethod
