@@ -31,8 +31,9 @@ class SqlWriter:
 
     def add_author_cites_author(self, main_id, source_id):
         insert_work_query = fr'''
-                INSERT IGNORE INTO author_cites_author (author_ID, Src_ID)
-                VALUES ({main_id}, {source_id})
+                INSERT into author_cites_author (Author_ID, Src_ID, total_refs) 
+                VALUES ({main_id}, {source_id}, 1) 
+                ON DUPLICATE key update total_refs = total_refs + 1;
         '''
         self.execute_query(insert_work_query)
 
