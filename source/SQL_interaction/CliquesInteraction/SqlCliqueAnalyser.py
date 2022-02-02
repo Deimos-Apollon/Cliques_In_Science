@@ -8,9 +8,9 @@ class SqlCliqueAnalyser:
     def __init__(self, connection=None):
         if connection is None:
             connection = create_connection()
-        self.clique_reader = SqlCliqueReader()
+        self.clique_reader = SqlCliqueReader(connection)
         self.sql_reader = SqlReader(connection)
-        self.clique_reader = SqlCliqueReader()
+        self.clique_reader = SqlCliqueReader(connection)
 
     def get_internal_citing(self, clique_id):
         clique_size = self.clique_reader.get_clique_size(clique_id)[0][0]
