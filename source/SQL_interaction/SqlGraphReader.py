@@ -6,8 +6,9 @@ from source.SQL_interaction.SqlWriter import SqlWriter
 
 
 class SqlGraphReader:
-    def __init__(self):
-        connection = create_connection()
+    def __init__(self, connection=None):
+        if connection is None:
+            connection = create_connection()
         self.sql_writer = SqlWriter(connection)
         self.sql_reader = SqlReader(connection)
 
