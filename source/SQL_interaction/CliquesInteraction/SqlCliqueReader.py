@@ -32,3 +32,15 @@ class SqlCliqueReader:
                     SELECT size from clique where id = {clique_id}
                 '''
         return self.__sql_reader.execute_get_query(get_query)
+
+    def get_clique_internal_citing(self, clique_id):
+        get_query = fr'''
+            SELECT internal_citing from clique where id = {clique_id}
+        '''
+        return self.__sql_reader.execute_get_query(get_query)
+
+    def get_clique_external_citing(self, clique_id):
+        get_query = fr'''
+            SELECT external_citing from clique where id = {clique_id}
+        '''
+        return self.__sql_reader.execute_get_query(get_query)

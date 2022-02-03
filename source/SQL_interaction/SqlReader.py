@@ -2,6 +2,12 @@ class SqlReader:
     def __init__(self, connection):
         self.connection = connection
 
+    def get_all_authors(self):
+        get_query = fr'''
+                SELECT ID FROM author
+        '''
+        return self.execute_get_query(get_query)
+
     def get_author_id(self, given, family):
         get_query = fr'''
                 SELECT ID FROM author WHERE given_name = ("{given}") AND family_name = ("{family}")
@@ -24,6 +30,12 @@ class SqlReader:
         get_query = fr'''
                 SELECT count(*) FROM work_cites_work WHERE Src_DOI = "{work_doi}"
         '''
+        return self.execute_get_query(get_query)
+
+    def get_work_year(self, work_doi):
+        get_query = fr'''
+                        SELECT year FROM work WHERE DOI = "{work_doi}"
+                '''
         return self.execute_get_query(get_query)
 
     def get_author_works(self, author_id):

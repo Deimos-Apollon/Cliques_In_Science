@@ -21,7 +21,7 @@ class SqlCliqueAnalyser:
     def get_external_citing(self, clique_id):
         clique_authors = self.clique_reader.get_clique_authors(clique_id)
         clique_works_refs = {}
-        internal_links_num = self.count_internal_links_works(clique_id)
+        internal_links_num = self.__count_internal_links_works(clique_id)
         for author in clique_authors:
             author = author[0]
             author_works = self.sql_reader.get_author_works(author)
@@ -51,7 +51,7 @@ class SqlCliqueAnalyser:
                             total_refs += 1
         return total_refs
 
-    def count_internal_links_works(self, clique_id):
+    def __count_internal_links_works(self, clique_id):
         total_refs = 0
         clique_works = set()
         clique_authors = self.clique_reader.get_clique_authors(clique_id)

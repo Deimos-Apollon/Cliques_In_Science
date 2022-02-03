@@ -23,4 +23,3 @@ class SqlGraphFiller:
                     self.__sql_writer.add_edge_to_graph(i)
                     if co_citation_id != i:
                         self.__sql_writer.add_edge_to_graph(co_citation_id)
-
