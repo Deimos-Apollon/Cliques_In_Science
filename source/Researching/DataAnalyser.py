@@ -150,3 +150,17 @@ class DataAnalyser:
                 rand_id = randint(1, max_ind)
             random_cliques.append(ids[rand_id][0])
         return random_cliques
+
+    def get_cliques_biggest_internal(self, cliques_num, surely_coauthors):
+        get_ids_query = fr'''
+                   SELECT id from clique where surely_coauthors={surely_coauthors}
+                   ORDER BY internal_citing DESC LIMIT {cliques_num}
+               '''
+        return self.sql_reader.execute_get_query(get_ids_query)
+
+    def get_cliques_least_internal(self, cliques_num, surely_coauthors):
+        get_ids_query = fr'''
+                   SELECT id from clique where surely_coauthors={surely_coauthors} and external_citing > 0
+                   ORDER BY external_citing LIMIT {cliques_num}
+               '''
+        return self.sql_reader.execute_get_query(get_ids_query)
