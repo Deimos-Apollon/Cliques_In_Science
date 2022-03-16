@@ -21,18 +21,14 @@ class SqlCliqueFiller:
             components = self.__graph_reader.get_components()
             for component in tqdm(components, "Writing Cliques"):
                 component = component[0]
-                cliques_authors = self.__bk_manager.bron_kerbosch(component)
-                for clique_authors in cliques_authors:
-                    self.__clique_writer.write_clique(component, clique_authors, 0)
+                self.__bk_manager.bron_kerbosch(component)
 
     def fill_cliques_coauthors(self):
         if self.__is_clique_in_bd_empty(1):
             components = self.__graph_reader.get_components()
             for component in tqdm(components, "Writing coauthors cliques"):
                 component = component[0]
-                cliques = self.__bk_manager.bron_kerbosch_coauthors(component)
-                for clique_authors in cliques:
-                    self.__clique_writer.write_clique(component, clique_authors, 1)
+                self.__bk_manager.bron_kerbosch_coauthors(component)
 
     def update_cliques_citing(self, surely_coauthors):
         clique_ids = self.__clique_reader.get_cliques(surely_coauthors)
