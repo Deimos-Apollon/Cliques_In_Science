@@ -11,4 +11,4 @@ def create_dir(path):
 
 
 def get_filenames_in_dir(path):
-    return tuple(fr"{path}\{file_name}" for file_name in listdir(path))
+    return tuple(fr"{path}/{file_name}" for file_name in listdir(path))

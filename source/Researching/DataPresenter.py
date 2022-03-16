@@ -36,7 +36,7 @@ class DataPresenter:
         ax.xaxis.set_major_locator(MaxNLocator(21, integer=True))
         print_distribution_dict(work_distribution)
 
-    def show_work_authors_num_distribution(self, width, height,):
+    def show_work_authors_num_distribution(self, width, height, ):
         distribution = self.__data_analyser.get_work_authors_num_distribution()
         x = distribution.keys()
         y = distribution.values()
@@ -106,7 +106,66 @@ class DataPresenter:
         ax2.set_xlabel("ID клики")
         ax2.set_ylabel("Внешнее цитирование")
         f.tight_layout()
-        f.show()
+
+    def show_cliques_biggest_internal(self, width, height, cliques_num, surely_coauthors):
+        ids = self.__data_analyser.get_cliques_biggest_internal(cliques_num, surely_coauthors)
+        ids = [id[0] for id in ids]
+        coefs = self.__data_analyser.get_cliques_internal_citings(ids)
+        mean_int = self.__data_analyser.get_mean_internal_citing(surely_coauthors)[0][0]
+        f, (ax1, ax2) = plt.subplots(1, 2)
+        f.set_size_inches(width, height)
+        ax1.bar([f'{id}' for id in ids], coefs)
+        ax1.plot([mean_int for _ in range(len(ids))], 'y', label='Средн. знач. в БД')
+        ax1.grid()
+        ax1.legend()
+        ax1.set_title(f"{cliques_num} клик {'соавторов' if surely_coauthors else 'авторов'} с наиб. внутрн. цит.")
+        ax1.set_xlabel("ID клики")
+        ax1.set_ylabel("Внутреннее цитирование")
+        print(f"Среднее значение внутреннего цитирования {'соавторов' if surely_coauthors else 'авторов'} "
+              f"по БД: {mean_int}")
+
+        ext_citings = self.__data_analyser.get_cliques_external_citings(ids)
+        mean_ext = self.__data_analyser.get_mean_external_citing(surely_coauthors)[0][0]
+        ax2.plot([mean_ext for _ in range(len(ids))], 'y', label='Средн. знач. в БД')
+        ax2.bar([f'{id}' for id in ids], ext_citings)
+        ax2.grid()
+        ax2.legend()
+        ax2.set_title(f"Внешнее цитирование у тех же {cliques_num} клик ")
+        ax2.set_xlabel("ID клики")
+        ax2.set_ylabel("Внешнее цитирование")
+        f.tight_layout()
+        print(f"Среднее значение внешнего цитирования {'соавторов' if surely_coauthors else 'авторов'} "
+              f"по БД: {mean_ext}")
+
+    def show_cliques_least_external(self, width, height, cliques_num, surely_coauthors):
+        ids = self.__data_analyser.get_cliques_least_internal(cliques_num, surely_coauthors)
+        ids = [id[0] for id in ids]
+        coefs = self.__data_analyser.get_cliques_external_citings(ids)
+        mean_ext = self.__data_analyser.get_mean_external_citing(surely_coauthors)[0][0]
+        f, (ax1, ax2) = plt.subplots(1, 2)
+        f.set_size_inches(width, height)
+        ax1.bar([f'{id}' for id in ids], coefs)
+        ax1.plot([mean_ext for _ in range(len(ids))], 'y', label='Средн. знач. в БД')
+        ax1.grid()
+        ax1.legend()
+        ax1.set_title(f"{cliques_num} клик {'соавторов' if surely_coauthors else 'авторов'} с наим. внешн. цит.")
+        ax1.set_xlabel("ID клики")
+        ax1.set_ylabel("Внешнее цитирование")
+        print(f"Среднее значение внешнего цитирования {'соавторов' if surely_coauthors else 'авторов'} "
+              f"по БД: {mean_ext}")
+
+        int_citings = self.__data_analyser.get_cliques_internal_citings(ids)
+        mean_int = self.__data_analyser.get_mean_internal_citing(surely_coauthors)[0][0]
+        ax2.plot([mean_int for _ in range(len(ids))], 'y', label='Средн. знач. в БД')
+        ax2.bar([f'{id}' for id in ids], int_citings)
+        ax2.grid()
+        ax2.legend()
+        ax2.set_title(f"Внутреннее цитирование у тех же {cliques_num} клик")
+        ax2.set_xlabel("ID клики")
+        ax2.set_ylabel("Внутреннее цитирование цитирование")
+        f.tight_layout()
+        print(f"Среднее значение внутреннего цитирования {'соавторов' if surely_coauthors else 'авторов'} "
+              f"по БД: {mean_int}")
 
 
 def print_distribution_dict(dictionary):
