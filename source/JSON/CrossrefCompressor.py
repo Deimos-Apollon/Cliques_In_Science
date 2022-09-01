@@ -1,17 +1,15 @@
 import gzip
 import json
-
 from tqdm import tqdm
-
 from source.DirManager import get_filenames_in_dir
 
 
 class CrossrefCompressor:
-    def __init__(self, dataset_dir):
+    def __init__(self, dataset_dir, output_dir):
         self.__max_entry__ = 5000
         self.__current_json_file_number = 0
         self.src_file_names = get_filenames_in_dir(dataset_dir)
-        self.output_dir = fr"C:\Users\user\PycharmProjects\Alt_exam\dataset\crossref"
+        self.output_dir = output_dir
 
     def proceed(self):
         compressed_data = {'items': []}
@@ -44,7 +42,7 @@ class CrossrefCompressor:
 
     def __is_valid(self, work):
         if work.get('author') and work.get('DOI') and work.get('reference') and work.get('subject') \
-                and work.get('published-print'):
+                and work.get('published-print') and (work.get('is-referenced-by-count') is not None):
             if work['published-print'].get('date-parts'):
                 if 2000 <= work['published-print']['date-parts'][0][0]:
                     for author in work['author']:
@@ -65,6 +63,7 @@ class CrossrefCompressor:
         doi = elem["DOI"]
         subject = elem['subject']
         year = elem['published-print']['date-parts'][0][0]
+        referenced_count = elem['is-referenced-by-count']
         authors = []
         for author in elem['author']:
             if self.__is_valid_author(author):
@@ -82,5 +81,6 @@ class CrossrefCompressor:
             "subject": subject,
             "author": authors,
             "reference": references,
+            "referenced-count": referenced_count
         }
         return json_view
