@@ -46,11 +46,13 @@ class JsonCompressor:
         year = elem['year']
         authors = elem['author']
         references = elem["reference"]
+        referenced_count = elem["referenced-count"]
         json_view = {
             "DOI": doi,
             "year": year,
             "subject": subject,
             "author": authors,
             "reference": references,
+            "referenced-count": referenced_count
         }
         return json_view
