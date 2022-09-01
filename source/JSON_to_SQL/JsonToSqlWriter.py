@@ -22,19 +22,20 @@ class JsonToSqlWriter:
         connection = create_connection()
         sql_writer = SqlWriter(connection)
         sql_reader = SqlReader(connection)
-
         for work in tqdm(samples, f"Reading first phase file {raw_filename}"):
             doi = work["DOI"]
             year = work["year"]
-            authors = work.get('author')
-            sql_writer.add_work(doi, year)
+            referenced_count = work["referenced-count"]
+            authors = work["author"]
+            sql_writer.add_work(doi, year, referenced_count)
             for author in authors:
                 given_name = author["given"]
                 family_name = author["family"]
-
                 sql_writer.add_author(given_name, family_name)
+                sql_writer.commit()
                 author_id = sql_reader.get_author_id(given_name, family_name)[0][0]
                 sql_writer.add_author_has_work(author_id, doi)
+        sql_writer.commit()
 
     @time_method_decorator
     def write_second_phase(self, dataset_dir, threads_num):
@@ -44,9 +45,8 @@ class JsonToSqlWriter:
 
     @staticmethod
     def __second_phase_on_file(samples, raw_filename):
-        connection = create_connection()
-        sql_writer = SqlWriter(connection)
-        sql_reader = SqlReader(connection)
+        sql_writer = SqlWriter(create_connection())
+        sql_reader = SqlReader(create_connection())
 
         for work in tqdm(samples, f"Reading second phase file #{raw_filename}"):
             work_doi = work["DOI"]
@@ -54,7 +54,6 @@ class JsonToSqlWriter:
             references = work['reference']
             for src_doi in references:
                 sql_writer.add_work_cites_work(work_doi, src_doi)
-
                 src_authors = sql_reader.get_work_authors(src_doi)
                 for src_author in src_authors:
                     for work_author in work_authors:
