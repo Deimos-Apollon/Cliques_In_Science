@@ -1,5 +1,3 @@
-from tqdm.autonotebook import tqdm
-
 from source.SQL_interaction.CliquesInteraction.SqlCliqueWriter import SqlCliqueWriter
 from source.SQL_interaction.Create_connection import create_connection
 from source.SQL_interaction.SqlGraphReader import SqlGraphReader
@@ -11,18 +9,12 @@ class BronKerboschManager:
         self.graph_reader = SqlGraphReader(connection)
         self.__clique_writer = SqlCliqueWriter(connection)
         self.incidence_lists = {}
-        self.candidates = set()
         self.compsub = set()
-        self.vertices_not = set()
-        self.clique = []
 
-    def bron_kerbosch(self, component_color):
-        self.incidence_lists = self.graph_reader.get_component_incidence_lists(component_color)
-        self.__bron_kerbosch(component_color, 0)
-
-    def bron_kerbosch_coauthors(self, component_color):
-        self.incidence_lists = self.graph_reader.get_component_incidence_lists_coauthors(component_color)
-        self.__bron_kerbosch(component_color, 1)
+    def bron_kerbosch(self, component_color, surely_coauthors):
+        self.incidence_lists = self.graph_reader.get_component_incidence_lists_coauthors(component_color) \
+            if surely_coauthors else self.graph_reader.get_component_incidence_lists(component_color)
+        self.__bron_kerbosch(component_color, surely_coauthors)
 
     def __bron_kerbosch(self, component_color, surely_coauthors):
         if self.incidence_lists:
@@ -31,12 +23,6 @@ class BronKerboschManager:
             return []
         self.compsub = set()
         vert_not = set()
-
-        cand_len = len(candidates)
-
-        big_clique_size = 1 if surely_coauthors else 1000
-        if cand_len > big_clique_size:
-            pbar = tqdm(total=len(candidates), desc=f"Component #{component_color}")
 
         # extend 0 recurs level
         while candidates and self.__check_is_adjacent_with_all_candidates(vert_not, candidates):
@@ -58,9 +44,6 @@ class BronKerboschManager:
             self.compsub.remove(vertex)
             candidates.remove(vertex)
             vert_not.add(vertex)
-
-            if cand_len > big_clique_size:
-                pbar.update(1)
 
     def __extend(self, candidates, vert_not, component_color, surely_coauthors):
         while candidates and self.__check_is_adjacent_with_all_candidates(vert_not, candidates):
