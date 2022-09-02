@@ -164,3 +164,21 @@ class DataAnalyser:
                    ORDER BY external_citing LIMIT {cliques_num}
                '''
         return self.sql_reader.execute_get_query(get_ids_query)
+
+    def get_suspicious_cliques(self, limit, ignore_zero, coauthors_mode, works_num_limit):
+        coauthors_condition = {0: 'AND surely_coauthors = 0',
+                               1: 'AND surely_coauthors = 1',
+                               2: ''}
+        ignore_condition = 'AND external_citing != 0' if ignore_zero else ''
+        works_num = f'AND works_num >= {works_num_limit}' if works_num_limit else ''
+        get_query = fr'''
+                    SELECT 
+                        id, size, external_citing / internal_citing, external_citing, internal_citing
+                    FROM
+                        clique
+                    WHERE
+                        internal_citing >= 1 {ignore_condition} {coauthors_condition[coauthors_mode]} {works_num}
+                    ORDER BY external_citing / internal_citing
+                    LIMIT {limit};
+                '''
+        return self.sql_reader.execute_get_query(get_query)
