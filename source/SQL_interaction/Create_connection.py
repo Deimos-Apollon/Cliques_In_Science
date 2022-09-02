@@ -9,7 +9,8 @@ def create_connection():
             host=SQL_HOST,
             user=SQL_USER,
             password=SQL_PASS,
-            database='alt_exam'
+            database='alt_exam',
+            charset='utf8',
         )
     except Error as e:
         raise ValueError(f'Error setting connection: {e}')
