@@ -167,6 +167,18 @@ class DataPresenter:
         print(f"Среднее значение внутреннего цитирования {'соавторов' if surely_coauthors else 'авторов'} "
               f"по БД: {mean_int}")
 
+    def show_most_suspicious_cliques(self, surely_coauthors, limit):
+        data = self.__data_analyser.get_suspicious_cliques(surely_coauthors, limit)
+        mean_ext = self.__data_analyser.get_mean_external_citing(surely_coauthors=surely_coauthors)[0][0]
+        mean_int = self.__data_analyser.get_mean_internal_citing(surely_coauthors=surely_coauthors)[0][0]
+        print(f"Среднее внешнее цитирование: {mean_ext}")
+        print(f"Среднее внутреннее цитирование: {mean_int}")
+        print()
+        print("  row | clique id | size |   ext/int  |   external |    internal")
+        for row_number, elem in enumerate(data, start=1):
+            id, size, ratio, external_citing, internal_citing = elem
+            print(f"{row_number:4}: | {id:9} | {size:4} | {ratio:10.5f} | {external_citing:10.5f} | {internal_citing:10.5f}")
+
 
 def print_distribution_dict(dictionary):
     new_line_counter = 0

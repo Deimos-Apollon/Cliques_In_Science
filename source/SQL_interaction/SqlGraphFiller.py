@@ -11,15 +11,16 @@ class SqlGraphFiller:
         self.__sql_writer = SqlWriter(connection)
         self.__sql_reader = SqlReader(connection)
 
-    def fill_graph_table(self):
+    def fill_graph_table(self, min_refs):
         citations_num = self.__sql_reader.get_citations_number()[0][0]
         for i in trange(1, citations_num + 1):
-            try_get_citation_in_graph = self.__sql_reader.get_authors_via_citation(i)
+            try_get_citation_in_graph = self.__sql_reader.get_citation_via_id(i)
             if try_get_citation_in_graph:
-                author, src = try_get_citation_in_graph[0]
-                co_citation_id = self.__sql_reader.get_citation_via_authors(src, author)
-                if co_citation_id:
-                    co_citation_id = co_citation_id[0][0]
-                    self.__sql_writer.add_edge_to_graph(i)
-                    if co_citation_id != i:
-                        self.__sql_writer.add_edge_to_graph(co_citation_id)
+                author, src, refs = try_get_citation_in_graph[0]
+                if refs >= min_refs:
+                    co_citation_id = self.__sql_reader.get_citation_via_authors(src, author)
+                    if co_citation_id and co_citation_id[0][1] >= min_refs:
+                        co_citation_id = co_citation_id[0][0]
+                        self.__sql_writer.add_edge_to_graph(i)
+                        if co_citation_id != i:
+                            self.__sql_writer.add_edge_to_graph(co_citation_id)

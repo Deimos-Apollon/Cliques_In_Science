@@ -3,6 +3,9 @@ class SqlWriter:
     def __init__(self, connection):
         self.connection = connection
 
+    def commit(self):
+        self.connection.commit()
+
     def execute_query(self, query):
         with self.connection.cursor() as cursor:
             cursor.execute(query)
@@ -15,10 +18,10 @@ class SqlWriter:
         '''
         self.execute_query(insert_author_query)
 
-    def add_work(self, doi, year):
+    def add_work(self, doi, year, referenced_count):
         insert_work_query = fr'''
-                INSERT IGNORE INTO work (DOI, year)
-                VALUES ("{doi}", {year})
+                INSERT IGNORE INTO work (DOI, year, Referenced_count)
+                VALUES ("{doi}", {year}, {referenced_count})
         '''
         self.execute_query(insert_work_query)
 
@@ -31,8 +34,8 @@ class SqlWriter:
 
     def add_author_cites_author(self, main_id, source_id):
         insert_work_query = fr'''
-                INSERT into author_cites_author (Author_ID, Src_ID, total_refs) 
-                VALUES ({main_id}, {source_id}, 1) 
+                INSERT into author_cites_author (Author_ID, Src_ID, total_refs)
+                VALUES ({main_id}, {source_id}, 1)
                 ON DUPLICATE key update total_refs = total_refs + 1;
         '''
         self.execute_query(insert_work_query)

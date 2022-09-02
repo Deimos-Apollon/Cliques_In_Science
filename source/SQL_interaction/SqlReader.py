@@ -1,6 +1,7 @@
 class SqlReader:
     def __init__(self, connection):
         self.connection = connection
+        self.cursor = self.connection.cursor()
 
     def get_all_authors(self):
         get_query = fr'''
@@ -28,7 +29,7 @@ class SqlReader:
 
     def get_work_is_referenced_count(self, work_doi):
         get_query = fr'''
-                SELECT count(*) FROM work_cites_work WHERE Src_DOI = "{work_doi}"
+                SELECT Referenced_count FROM work WHERE DOI = "{work_doi}"
         '''
         return self.execute_get_query(get_query)
 
@@ -41,12 +42,6 @@ class SqlReader:
     def get_author_works(self, author_id):
         get_query = fr'''
                 SELECT Work_DOI FROM author_has_work WHERE Author_ID = {author_id}
-        '''
-        return self.execute_get_query(get_query)
-
-    def get_all_citations(self):
-        get_query = fr'''
-                SELECT * FROM author_cites_author
         '''
         return self.execute_get_query(get_query)
 
@@ -68,9 +63,15 @@ class SqlReader:
         '''
         return self.execute_get_query(get_query)
 
+    def get_citation_via_id(self, entry_id):
+        get_query = fr'''
+                SELECT author_ID, Src_ID, total_refs FROM author_cites_author WHERE ID = {entry_id}
+        '''
+        return self.execute_get_query(get_query)
+
     def get_citation_via_authors(self, author_id, src_id):
         get_query = fr'''
-                SELECT ID FROM author_cites_author WHERE author_ID = {author_id} and Src_ID = {src_id}
+                SELECT ID, total_refs FROM author_cites_author WHERE author_ID = {author_id} and Src_ID = {src_id}
         '''
         return self.execute_get_query(get_query)
 
@@ -124,6 +125,5 @@ class SqlReader:
         return False
 
     def execute_get_query(self, query):
-        with self.connection.cursor() as cursor:
-            cursor.execute(query)
-            return cursor.fetchall()
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
