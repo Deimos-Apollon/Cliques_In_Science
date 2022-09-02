@@ -1,6 +1,5 @@
 from source.SQL_interaction.CliquesInteraction.SqlCliqueReader import SqlCliqueReader
 from source.SQL_interaction.Create_connection import create_connection
-from source.SQL_interaction.SqlGraphReader import SqlGraphReader
 from source.SQL_interaction.SqlReader import SqlReader
 
 
@@ -10,7 +9,6 @@ class SqlCliqueAnalyser:
             connection = create_connection()
         self.clique_reader = SqlCliqueReader(connection)
         self.sql_reader = SqlReader(connection)
-        self.clique_reader = SqlCliqueReader(connection)
 
     def get_internal_citing(self, clique_id):
         clique_size = self.clique_reader.get_clique_size(clique_id)[0][0]
@@ -21,7 +19,6 @@ class SqlCliqueAnalyser:
     def get_external_citing(self, clique_id):
         clique_authors = self.clique_reader.get_clique_authors(clique_id)
         clique_works_refs = {}
-        internal_links_num = self.__count_internal_links_works(clique_id)
         for author in clique_authors:
             author = author[0]
             author_works = self.sql_reader.get_author_works(author)
@@ -29,7 +26,7 @@ class SqlCliqueAnalyser:
                 work = work[0]
                 if work not in clique_works_refs:
                     clique_works_refs[work] = self.sql_reader.get_work_is_referenced_count(work)[0][0]
-        clique_coef = (sum(clique_works_refs.values()) - internal_links_num) / len(clique_works_refs.keys())
+        clique_coef = (sum(clique_works_refs.values())) / len(clique_works_refs.keys())
         return clique_coef
 
     def __count_internal_links_authors(self, clique_id):
